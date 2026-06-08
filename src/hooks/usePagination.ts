@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 interface UsePaginationReturn<T> {
 	currentItems: T[];
@@ -32,63 +32,75 @@ function usePagination<T>(
 		setPageIndex(targetPageIndex);
 	}
 
-	let currentItems: T[] = [];
-	if (typeof pageSize === "number" && pageSize >= 1) {
-		currentItems = data.slice(pageIndex * pageSize, (pageIndex + 1) * pageSize);
-	}
+	const currentItems = useMemo(() => {
+		if (typeof pageSize !== "number" || pageSize < 1) {
+			return [];
+		}
+
+		return data.slice(pageIndex * pageSize, (pageIndex + 1) * pageSize);
+	}, [pageIndex, pageSize, data]);
 
 	const canPrevious = pageIndex > 0;
 	const canNext = pageIndex < totalPages - 1;
 
-	function nextPage() {
+	const nextPage = useCallback(() => {
 		setPageIndex((prev) => (prev < totalPages - 1 ? prev + 1 : prev));
-	}
+	}, [totalPages]);
 
-	function previousPage() {
+	const previousPage = useCallback(() => {
 		setPageIndex((prev) => (prev > 0 ? prev - 1 : prev));
-	}
+	}, []);
 
-	function firstPage() {
+	const firstPage = useCallback(() => {
 		setPageIndex(0);
-	}
+	}, []);
 
-	function lastPage() {
+	const lastPage = useCallback(() => {
 		setPageIndex(totalPages - 1);
-	}
+	}, [totalPages]);
 
-	function changePageIndex(newPageIndex: number) {
-		if (
-			typeof newPageIndex === "number"
-			&& newPageIndex >= 0
-			&& newPageIndex <= totalPages - 1
-		) {
-			setPageIndex(newPageIndex);
-		}
-	}
+	const changePageIndex = useCallback(
+		(newPageIndex: number) => {
+			if (
+				typeof newPageIndex === "number"
+				&& newPageIndex >= 0
+				&& newPageIndex <= totalPages - 1
+			)
+				setPageIndex(newPageIndex);
+		},
+		[totalPages],
+	);
 
-	function changePageSize(newPageSize: number) {
-		if (typeof newPageSize === "number" && newPageSize > 0) {
-			setPageSize(newPageSize);
-			const newTotalPages = Math.max(
-				1,
-				Math.ceil(data.length / Math.max(1, newPageSize)),
-			);
-			setPageIndex((prev) => Math.min(Math.max(0, prev), newTotalPages - 1));
-		}
-	}
+	const changePageSize = useCallback(
+		(newPageSize: number) => {
+			if (typeof newPageSize === "number" && newPageSize > 0) {
+				setPageSize(newPageSize);
 
-	function resetPageIndex() {
+				const newTotalPages = Math.max(
+					1,
+					Math.ceil(data.length / Math.max(1, newPageSize)),
+				);
+				setPageIndex((prev) =>
+					Math.min(Math.max(0, prev), newTotalPages - 1),
+				);
+			}
+		},
+		[data.length],
+	);
+
+	const resetPageIndex = useCallback(() => {
 		setPageIndex(Math.min(Math.max(0, initialPageIndex), totalPages - 1));
-	}
+	}, [initialPageIndex, totalPages]);
 
-	function resetPageSize() {
+	const resetPageSize = useCallback(() => {
 		setPageSize(Math.max(1, initialPageSize));
+
 		const newTotalPages = Math.max(
 			1,
 			Math.ceil(data.length / Math.max(1, initialPageSize)),
 		);
 		setPageIndex((prev) => Math.min(Math.max(0, prev), newTotalPages - 1));
-	}
+	}, [initialPageSize, data.length]);
 
 	return {
 		currentItems,
