@@ -1,0 +1,48 @@
+:where(html) {
+	scrollbar-gutter: stable both;
+}
+
+:where(body:has(dialog[open])) {
+	overflow: hidden;
+}
+
+:where(dialog.universal-modal) {
+	box-sizing: border-box;
+	max-width: var(--modal-max-width, 500px);
+	width: calc(100% - 2rem);
+
+	padding: 0;
+
+	background: transparent;
+	border: none;
+}
+
+:where(dialog.universal-modal .modal-container) {
+	box-sizing: border-box;
+
+	padding: var(--modal-padding, 24px);
+
+	background-color: var(--modal-bg, #ffffff);
+	border-radius: var(--modal-radius, 8px);
+	box-shadow: var(--modal-shadow, 0 4px 12px rgba(0, 0, 0, 0.15));
+}
+
+dialog.universal-modal::backdrop {
+	background-color: var(--modal-backdrop-bg, rgba(0, 0, 0, 0.5));
+	backdrop-filter: blur(var(--modal-backdrop-blur, none));
+}
+
+:where(dialog.universal-modal[open]) {
+	animation: modal-fade-in 200ms ease-out;
+}
+
+@keyframes modal-fade-in {
+	from {
+		opacity: 0;
+		transform: scale(0.95);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
