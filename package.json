@@ -17,7 +17,7 @@
 	},
 	"scripts": {
 		"dev": "vite",
-		"build": "tsc -b && vite build",
+		"build": "vite build",
 		"lint": "eslint .",
 		"preview": "vite preview",
 		"format": "prettier . --write"
@@ -44,7 +44,8 @@
 		"react-dom": "^19.2.6",
 		"typescript": "~6.0.2",
 		"typescript-eslint": "^8.59.2",
-		"vite": "^8.0.12"
+		"vite": "^8.0.12",
+		"vite-plugin-dts": "^5.0.2"
 	},
 	"sideEffects": [
 		"**/*.css"
