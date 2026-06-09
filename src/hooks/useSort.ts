@@ -263,5 +263,6 @@ export {
 	type SortOptions,
 	type SortState,
 	type UseSortReturn,
-	useSort,
+	useSort
 };
+
