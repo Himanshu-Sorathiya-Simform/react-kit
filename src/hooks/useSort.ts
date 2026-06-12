@@ -7,8 +7,8 @@ import {
 	compareCustom,
 	compareDates,
 	compareNumbers,
-	getValue,
 } from "../utils/sortUtils.ts";
+import { getValue } from "../utils/utils.ts";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -262,6 +262,7 @@ export {
 	type SortConfig,
 	type SortOptions,
 	type SortState,
+	type SortType,
 	type UseSortReturn,
-	useSort
+	useSort,
 };

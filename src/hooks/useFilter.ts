@@ -1,5 +1,6 @@
-import { useCallback, useState } from "react";
-import { FILTER_STRATEGIES, getValue } from "../utils/filterUtils.ts";
+import { useCallback, useMemo, useState } from "react";
+import { FILTER_STRATEGIES } from "../utils/filterUtils.ts";
+import { getValue } from "../utils/utils.ts";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -79,27 +80,31 @@ function useFilter<T>(
 ): UseFilterReturn<T> {
 	const [filters, setFilters] = useState<FilterState>(initialFilters);
 
-	const filteredItems = data.filter((item) => {
-		return filters.every((filterConfig) => {
-			const { id, field, type, operator, value, compare, ...options } =
-				filterConfig;
-			const itemValue = getValue(item, field, id);
+	const filteredItems = useMemo(
+		() =>
+			data.filter((item) => {
+				return filters.every((filterConfig) => {
+					const { id, field, type, operator, value, compare } =
+						filterConfig;
+					const itemValue = getValue(item, field, id);
 
-			if (type === "custom" || operator === "custom") {
-				return compare ? compare(itemValue, value, item) : true;
-			}
+					if (type === "custom" || operator === "custom") {
+						return compare ? compare(itemValue, value, item) : true;
+					}
 
-			const strategyBlock = FILTER_STRATEGIES[type];
+					const strategyBlock = FILTER_STRATEGIES[type];
 
-			if (!strategyBlock) return true;
+					if (!strategyBlock) return true;
 
-			const operatorFn = strategyBlock[operator];
+					const operatorFn = strategyBlock[operator];
 
-			if (!operatorFn) return true;
+					if (!operatorFn) return true;
 
-			return operatorFn(itemValue, value, options);
-		});
-	});
+					return operatorFn(itemValue, value, filterConfig);
+				});
+			}),
+		[data, filters],
+	);
 
 	const addFilter = useCallback((filter: FilterConfig) => {
 		setFilters((prev) => {
@@ -192,4 +197,19 @@ function useFilter<T>(
 	};
 }
 
-export { type FilterOptions, type UseFilterReturn, useFilter };
+export {
+	type BooleanOperator,
+	type CustomOperator,
+	type DateOperator,
+	type FilterConfig,
+	type FilterOperator,
+	type FilterOptions,
+	type FilterState,
+	type FilterType,
+	type MultiselectOperator,
+	type NumberOperator,
+	type SelectOperator,
+	type TextOperator,
+	type UseFilterReturn,
+	useFilter,
+};

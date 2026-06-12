@@ -24,10 +24,24 @@ function compareNumbers(a: any, b: any, options: SortOptions = {}) {
 
 	if (undefinedResult !== null) return undefinedResult;
 
-	const valueA = Number.isNaN(Number(a)) ? 0 : Number(a);
-	const valueB = Number.isNaN(Number(b)) ? 0 : Number(b);
+	const numA = a === "" || a === null ? NaN : Number(a);
+	const numB = b === "" || b === null ? NaN : Number(b);
 
-	return valueA - valueB;
+	const isANaN = Number.isNaN(numA);
+	const isBNaN = Number.isNaN(numB);
+
+	if (isANaN || isBNaN) {
+		return (
+			handleUndefinedSort(
+				isANaN ? undefined : numA,
+				isBNaN ? undefined : numB,
+				sortUndefined,
+				desc,
+			) ?? 0
+		);
+	}
+
+	return numA - numB;
 }
 
 function compareAlphabetical(a: any, b: any, options: SortOptions = {}) {
@@ -109,22 +123,6 @@ function compareCustom(a: any, b: any, options: SortOptions = {}) {
 	);
 }
 
-function getValue(obj: any, path: string | undefined, fallbackKey: string) {
-	if (typeof obj !== "object" || obj === null) {
-		return obj;
-	}
-
-	const activePath = path || fallbackKey;
-
-	if (!activePath.includes(".")) {
-		return obj?.[activePath];
-	}
-
-	return activePath.split(".").reduce((current, key) => {
-		return current?.[key];
-	}, obj);
-}
-
 function handleUndefinedSort(
 	a: any,
 	b: any,
@@ -166,5 +164,4 @@ export {
 	compareCustom,
 	compareDates,
 	compareNumbers,
-	getValue,
 };

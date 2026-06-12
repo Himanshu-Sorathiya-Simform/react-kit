@@ -1,29 +1,24 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import type { FilterOptions } from "../hooks/useFilter.ts";
-
 const FILTER_STRATEGIES: Record<
 	string,
-	Record<
-		string,
-		(itemValue: any, filterValue: any, options: FilterOptions) => boolean
-	>
+	Record<string, (itemValue: any, filterValue: any, config: any) => boolean>
 > = {
 	text: {
-		contains: (item, filter, options) => {
-			if (options?.caseSensitive) return String(item).includes(String(filter));
+		contains: (item, filter, config) => {
+			if (config?.caseSensitive) return String(item).includes(String(filter));
 
 			return String(item).toLowerCase().includes(String(filter).toLowerCase());
 		},
 
-		equals: (item, filter, options) => {
-			if (options?.caseSensitive) return String(item) === String(filter);
+		equals: (item, filter, config) => {
+			if (config?.caseSensitive) return String(item) === String(filter);
 
 			return String(item).toLowerCase() === String(filter).toLowerCase();
 		},
 
-		startsWith: (item, filter, options) => {
-			if (options?.caseSensitive)
+		startsWith: (item, filter, config) => {
+			if (config?.caseSensitive)
 				return String(item).startsWith(String(filter));
 
 			return String(item)
@@ -31,15 +26,14 @@ const FILTER_STRATEGIES: Record<
 				.startsWith(String(filter).toLowerCase());
 		},
 
-		endsWith: (item, filter, options) => {
-			if (options?.caseSensitive) return String(item).endsWith(String(filter));
+		endsWith: (item, filter, config) => {
+			if (config?.caseSensitive) return String(item).endsWith(String(filter));
 
 			return String(item).toLowerCase().endsWith(String(filter).toLowerCase());
 		},
 
-		notContains: (item, filter, options) => {
-			if (options?.caseSensitive)
-				return !String(item).includes(String(filter));
+		notContains: (item, filter, config) => {
+			if (config?.caseSensitive) return !String(item).includes(String(filter));
 
 			return !String(item)
 				.toLowerCase()
@@ -70,22 +64,53 @@ const FILTER_STRATEGIES: Record<
 	},
 
 	date: {
-		equals: (itemVal, filterVal) =>
-			new Date(itemVal).getTime() === new Date(filterVal).getTime(),
+		equals: (itemVal, filterVal) => {
+			if (!itemVal || !filterVal) return false;
 
-		before: (itemVal, filterVal) =>
-			new Date(itemVal).getTime() < new Date(filterVal).getTime(),
+			const itemTime = new Date(itemVal).getTime();
+			const filterTime = new Date(filterVal).getTime();
 
-		after: (itemVal, filterVal) =>
-			new Date(itemVal).getTime() > new Date(filterVal).getTime(),
+			if (Number.isNaN(itemTime) || Number.isNaN(filterTime)) return false;
+
+			return itemTime === filterTime;
+		},
+
+		before: (itemVal, filterVal) => {
+			if (!itemVal || !filterVal) return false;
+
+			const itemTime = new Date(itemVal).getTime();
+			const filterTime = new Date(filterVal).getTime();
+
+			if (Number.isNaN(itemTime) || Number.isNaN(filterTime)) return false;
+
+			return itemTime < filterTime;
+		},
+
+		after: (itemVal, filterVal) => {
+			if (!itemVal || !filterVal) return false;
+
+			const itemTime = new Date(itemVal).getTime();
+			const filterTime = new Date(filterVal).getTime();
+
+			if (Number.isNaN(itemTime) || Number.isNaN(filterTime)) return false;
+
+			return itemTime > filterTime;
+		},
 
 		between: (itemVal, filterVal) => {
-			const itemTime = new Date(itemVal).getTime();
+			if (!itemVal || !filterVal?.min || !filterVal?.max) return false;
 
-			return (
-				itemTime >= new Date(filterVal.min).getTime()
-				&& itemTime <= new Date(filterVal.max).getTime()
-			);
+			const itemTime = new Date(itemVal).getTime();
+			const minTime = new Date(filterVal.min).getTime();
+			const maxTime = new Date(filterVal.max).getTime();
+			if (
+				Number.isNaN(itemTime)
+				|| Number.isNaN(minTime)
+				|| Number.isNaN(maxTime)
+			)
+				return false;
+
+			return itemTime >= minTime && itemTime <= maxTime;
 		},
 	},
 
@@ -105,20 +130,4 @@ const FILTER_STRATEGIES: Record<
 	},
 };
 
-function getValue(obj: any, path: string | undefined, fallbackKey: string) {
-	if (typeof obj !== "object" || obj === null) {
-		return obj;
-	}
-
-	const activePath = path || fallbackKey;
-
-	if (!activePath.includes(".")) {
-		return obj?.[activePath];
-	}
-
-	return activePath.split(".").reduce((current, key) => {
-		return current?.[key];
-	}, obj);
-}
-
-export { FILTER_STRATEGIES, getValue };
+export { FILTER_STRATEGIES };
