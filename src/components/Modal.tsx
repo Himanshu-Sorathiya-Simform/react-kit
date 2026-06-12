@@ -2,14 +2,12 @@ import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useModal } from "../hooks/useModal.ts";
 
-import "../css/Modal.css";
-
-interface ModalProps {
+interface ModalLayoutProps {
 	children: React.ReactNode;
 	className?: string;
 }
 
-function Modal({ children, className = "" }: ModalProps) {
+function ModalLayout({ children, className }: ModalLayoutProps) {
 	const { id, closeModal } = useModal();
 
 	const dialogRef = useRef<HTMLDialogElement | null>(null);
@@ -35,7 +33,7 @@ function Modal({ children, className = "" }: ModalProps) {
 		<dialog
 			ref={dialogRef}
 			onCancel={handleCancel}
-			className={`universal-modal ${className ?? ""}`}
+			className={`universal-modal ${className}`}
 		>
 			<div className="modal-container">{children}</div>
 		</dialog>,
@@ -43,4 +41,4 @@ function Modal({ children, className = "" }: ModalProps) {
 	);
 }
 
-export { Modal };
+export { ModalLayout };
