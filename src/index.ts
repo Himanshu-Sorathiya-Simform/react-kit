@@ -1,10 +1,12 @@
 export { ModalLayout } from "./components/Modal.tsx";
 
+export { useDebounce } from "./hooks/useDebounce.ts";
 export { useFilter } from "./hooks/useFilter.ts";
 export { useModal } from "./hooks/useModal.ts";
 export { usePagination } from "./hooks/usePagination.ts";
 export { useSort } from "./hooks/useSort.ts";
 
+export { type UseDebounceReturn } from "./hooks/useDebounce.ts";
 export {
 	type BooleanOperator,
 	type CustomOperator,
