@@ -3,6 +3,7 @@ export { ModalLayout } from "./components/Modal.tsx";
 export { useDebounce } from "./hooks/useDebounce.ts";
 export { useDebouncedValue } from "./hooks/useDebouncedValue.ts";
 export { useFilter } from "./hooks/useFilter.ts";
+export { useKey } from "./hooks/useKey.ts";
 export { useModal } from "./hooks/useModal.ts";
 export { usePagination } from "./hooks/usePagination.ts";
 export { useSort } from "./hooks/useSort.ts";
@@ -24,6 +25,15 @@ export {
 	type TextOperator,
 	type UseFilterReturn,
 } from "./hooks/useFilter.ts";
+export {
+	type KeyChordModifiers,
+	type KeyEventModifiers,
+	type KeyEventType,
+	type KeyFilterOptions,
+	type KeyLifecycleOptions,
+	type KeyOptions,
+	type UseKeyReturn,
+} from "./hooks/useKey.ts";
 export { type UseModalReturn } from "./hooks/useModal.ts";
 export { type UsePaginationReturn } from "./hooks/usePagination.ts";
 export {
