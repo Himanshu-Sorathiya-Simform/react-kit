@@ -7,6 +7,7 @@ export { useKey } from "./hooks/useKey.ts";
 export { useModal } from "./hooks/useModal.ts";
 export { usePagination } from "./hooks/usePagination.ts";
 export { useSort } from "./hooks/useSort.ts";
+export { useThrottle } from "./hooks/useThrottle.ts";
 
 export { type UseDebounceReturn } from "./hooks/useDebounce.ts";
 export { type UseDebouncedValueReturn } from "./hooks/useDebouncedValue.ts";
@@ -43,3 +44,7 @@ export {
 	type SortType,
 	type UseSortReturn,
 } from "./hooks/useSort.ts";
+export {
+	type ThrottleOptions,
+	type UseThrottleReturn,
+} from "./hooks/useThrottle.ts";
