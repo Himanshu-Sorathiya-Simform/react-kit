@@ -1,5 +1,5 @@
-import { useSelector } from "@tanstack/react-store";
-import { modalStore } from "../store/modalStore.ts";
+import { useContext } from "react";
+import { ModalContext } from "../context/ModalContext";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -11,15 +11,13 @@ interface UseModalReturn<TData> {
 }
 
 function useModal<TData = any>(): UseModalReturn<TData> {
-	const id = useSelector(modalStore, (state) => state.id);
-	const data = useSelector(modalStore, (state) => state.data);
+	const context = useContext(ModalContext);
 
-	return {
-		id,
-		data,
-		openModal: modalStore.actions.open,
-		closeModal: modalStore.actions.close,
-	};
+	if (!context) {
+		throw new Error("useModal must be used within a ModalProvider");
+	}
+
+	return context as UseModalReturn<TData>;
 }
 
 export { type UseModalReturn, useModal };
