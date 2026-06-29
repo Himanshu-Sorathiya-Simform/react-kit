@@ -3,6 +3,7 @@ export { ModalLayout } from "./components/Modal.tsx";
 export { useDebounce } from "./hooks/useDebounce.ts";
 export { useDebouncedValue } from "./hooks/useDebouncedValue.ts";
 export { useFilter } from "./hooks/useFilter.ts";
+export { useFuzzySearch } from "./hooks/useFuzzySearch.ts";
 export { useKey } from "./hooks/useKey.ts";
 export { useModal } from "./hooks/useModal.ts";
 export { usePagination } from "./hooks/usePagination.ts";
@@ -26,6 +27,11 @@ export {
 	type TextOperator,
 	type UseFilterReturn,
 } from "./hooks/useFilter.ts";
+export {
+	type FuzzySearchOptions,
+	type UseFuzzySearchFields,
+	type UseFuzzySearchReturn,
+} from "./hooks/useFuzzySearch.ts";
 export {
 	type KeyChordModifiers,
 	type KeyEventModifiers,
