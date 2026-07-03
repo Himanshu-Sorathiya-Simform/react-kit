@@ -1,4 +1,10 @@
 import { useCallback, useMemo, useState } from "react";
+import type {
+	SortConfig,
+	SortOptionsForType,
+	SortState,
+	SortType,
+} from "../types/sort.types.ts";
 import {
 	compareAlphabetical,
 	compareAlphanumeric,
@@ -10,50 +16,20 @@ import {
 } from "../utils/sortUtils.ts";
 import { getValue } from "../utils/utils.ts";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
-type SortType =
-	| "numeric"
-	| "alphabetical"
-	| "alphanumeric"
-	| "boolean"
-	| "date"
-	| "basic"
-	| "custom";
-
-interface SortOptions {
-	desc?: boolean;
-	caseSensitive?: boolean;
-	disableSortRemoval?: boolean;
-	invertSorting?: boolean;
-	sortUndefined?: "first" | "last" | false | -1 | 1;
-	compare?: (a: any, b: any) => number;
-}
-
-interface SortConfig extends SortOptions {
-	id: string;
-	type: SortType;
-	field?: string;
-}
-
-type SortState = Array<SortConfig>;
-
 interface UseSortReturn<T> {
 	sortedItems: T[];
 	sorts: SortState;
-	addSort: (sort: SortConfig) => void;
+	upsertSorts: (sort: SortConfig) => void;
 	removeSort: (id: string | string[]) => void;
 	clearSorts: () => void;
 	resetSorts: () => void;
-	setSorts: (sorts: SortState) => void;
-	getSortDirection: (id: string) => "asc" | "desc" | undefined;
-	toggleSort: (
+	replaceSorts: (sorts: SortState) => void;
+	toggleSort: <TType extends SortType>(
 		id: string,
-		type: SortType,
-		options?: SortOptions & {
-			multi?: boolean;
-		},
+		type: TType,
+		options?: SortOptionsForType<TType> & { multi?: boolean; field?: string },
 	) => void;
+	getSortDirection: (id: string) => "asc" | "desc" | undefined;
 	getNextSortingOrder: (id: string) => "asc" | "desc" | "none";
 	getSortIndex: (id: string) => number | undefined;
 }
@@ -61,69 +37,106 @@ interface UseSortReturn<T> {
 function useSort<T>(data: T[], initialSorts: SortState = []): UseSortReturn<T> {
 	const [sorts, setSorts] = useState<SortState>(initialSorts);
 
-	const sortedItems = useMemo(
-		() =>
-			data.toSorted((itemA, itemB) => {
-				for (const sortConfig of sorts) {
-					const {
-						type,
-						field,
-						id,
-						desc = false,
-						invertSorting = false,
-					} = sortConfig;
+	const sortedItems = useMemo(() => {
+		const processedSorts = sorts.map(
+			(sortConfig): SortConfig & { pathArray: string[] } => ({
+				...sortConfig,
+				pathArray: (sortConfig.field || sortConfig.id).split("."),
+			}),
+		);
 
-					const valueA = getValue(itemA, field, id);
-					const valueB = getValue(itemB, field, id);
+		return [...data].sort((itemA, itemB) => {
+			for (const sortConfig of processedSorts) {
+				const {
+					type,
+					id,
+					desc = false,
+					invertSorting = false,
+					pathArray,
+				} = sortConfig;
 
-					let result: number;
+				const valueA = getValue(itemA, pathArray, id);
+				const valueB = getValue(itemB, pathArray, id);
 
-					switch (type) {
-						case "numeric":
-							result = compareNumbers(valueA, valueB, sortConfig);
-							break;
+				let result: number;
 
-						case "alphabetical":
-							result = compareAlphabetical(valueA, valueB, sortConfig);
-							break;
+				switch (type) {
+					case "numeric":
+						result = compareNumbers(
+							valueA,
+							valueB,
+							sortConfig as unknown as SortOptionsForType<"numeric">,
+						);
+						break;
 
-						case "alphanumeric":
-							result = compareAlphanumeric(valueA, valueB, sortConfig);
-							break;
+					case "alphabetical":
+						result = compareAlphabetical(
+							valueA,
+							valueB,
+							sortConfig as unknown as SortOptionsForType<"alphabetical">,
+						);
+						break;
 
-						case "boolean":
-							result = compareBooleans(valueA, valueB, sortConfig);
-							break;
+					case "alphanumeric":
+						result = compareAlphanumeric(
+							valueA,
+							valueB,
+							sortConfig as unknown as SortOptionsForType<"alphanumeric">,
+						);
+						break;
 
-						case "date":
-							result = compareDates(valueA, valueB, sortConfig);
-							break;
+					case "boolean":
+						result = compareBooleans(
+							valueA,
+							valueB,
+							sortConfig as unknown as SortOptionsForType<"boolean">,
+						);
+						break;
 
-						case "basic":
-							result = compareBasic(valueA, valueB, sortConfig);
-							break;
+					case "date":
+						result = compareDates(
+							valueA,
+							valueB,
+							sortConfig as unknown as SortOptionsForType<"date">,
+						);
+						break;
 
-						case "custom":
-							result = compareCustom(valueA, valueB, sortConfig);
-							break;
+					case "basic":
+						result = compareBasic(
+							valueA,
+							valueB,
+							sortConfig as unknown as SortOptionsForType<"basic">,
+						);
+						break;
 
-						default:
-							result = compareBasic(valueA, valueB, sortConfig);
-					}
+					case "custom":
+						result = compareCustom(
+							valueA,
+							valueB,
+							sortConfig as unknown as SortOptionsForType<"custom">,
+						);
+						break;
 
-					if (result !== 0) {
-						const multiplier = desc !== invertSorting ? -1 : 1;
-
-						return result * multiplier;
-					}
+					default:
+						result = compareBasic(
+							valueA,
+							valueB,
+							sortConfig as unknown as SortOptionsForType<"basic">,
+						);
 				}
 
-				return 0;
-			}),
-		[sorts, data],
-	);
+				if (result !== 0) {
+					const multiplier = desc !== invertSorting ? -1 : 1;
 
-	const addSort = useCallback(
+					return result * multiplier;
+				}
+			}
+
+			return 0;
+		});
+	}, [sorts, data]);
+
+	const upsertSorts = useCallback(
 		(sort: SortConfig) =>
 			setSorts((prev) => {
 				const exists = prev.some((s) => s.id === sort.id);
@@ -151,7 +164,66 @@ function useSort<T>(data: T[], initialSorts: SortState = []): UseSortReturn<T> {
 
 	const resetSorts = useCallback(() => setSorts(initialSorts), [initialSorts]);
 
-	const changeSorts = useCallback((sorts: SortState) => setSorts(sorts), []);
+	const replaceSorts = useCallback((sorts: SortState) => setSorts(sorts), []);
+
+	const toggleSort = useCallback(
+		<TType extends SortType>(
+			id: string,
+			type: TType,
+			options?: SortOptionsForType<TType> & {
+				multi?: boolean;
+				field?: string;
+			},
+		) => {
+			const { multi = false, ...sortOptions } =
+				options || ({} as NonNullable<typeof options>);
+
+			setSorts((prev) => {
+				const existingSort = prev.find((s) => s.id === id);
+
+				if (!existingSort) {
+					const newSort = {
+						id,
+						type,
+						...sortOptions,
+						desc: false,
+					} as SortConfig;
+
+					return multi ? [...prev, newSort] : [newSort];
+				}
+
+				if (!existingSort.desc) {
+					const updatedSort = {
+						...existingSort,
+						...sortOptions,
+						desc: true,
+					} as SortConfig;
+
+					return multi ?
+							prev.map((s) => (s.id === id ? updatedSort : s))
+						:	[updatedSort];
+				}
+
+				if (
+					existingSort.disableSortRemoval
+					|| sortOptions.disableSortRemoval
+				) {
+					const resetSort = {
+						...existingSort,
+						...sortOptions,
+						desc: false,
+					} as SortConfig;
+
+					return multi ?
+							prev.map((s) => (s.id === id ? resetSort : s))
+						:	[resetSort];
+				}
+
+				return multi ? prev.filter((s) => s.id !== id) : [];
+			});
+		},
+		[],
+	);
 
 	const getSortDirection = useCallback(
 		(id: string) => {
@@ -164,61 +236,6 @@ function useSort<T>(data: T[], initialSorts: SortState = []): UseSortReturn<T> {
 			);
 		},
 		[sorts],
-	);
-
-	const toggleSort = useCallback(
-		(
-			id: string,
-			type: SortType,
-			options?: SortOptions & { multi?: boolean },
-		) => {
-			const { multi = false, ...sortOptions } = options || {};
-
-			setSorts((prev) => {
-				const existingSort = prev.find((s) => s.id === id);
-
-				if (!existingSort) {
-					const newSort: SortConfig = {
-						id,
-						type,
-						...(sortOptions as Partial<SortConfig>),
-						desc: false,
-					};
-
-					return multi ? [...prev, newSort] : [newSort];
-				}
-
-				if (!existingSort.desc) {
-					const updatedSort: SortConfig = {
-						...existingSort,
-						...sortOptions,
-						desc: true,
-					};
-
-					return multi ?
-							prev.map((s) => (s.id === id ? updatedSort : s))
-						:	[updatedSort];
-				}
-
-				if (
-					existingSort.disableSortRemoval
-					|| sortOptions.disableSortRemoval
-				) {
-					const resetSort: SortConfig = {
-						...existingSort,
-						...sortOptions,
-						desc: false,
-					};
-
-					return multi ?
-							prev.map((s) => (s.id === id ? resetSort : s))
-						:	[resetSort];
-				}
-
-				return multi ? prev.filter((s) => s.id !== id) : [];
-			});
-		},
-		[],
 	);
 
 	const getNextSortingOrder = useCallback(
@@ -246,11 +263,11 @@ function useSort<T>(data: T[], initialSorts: SortState = []): UseSortReturn<T> {
 	return {
 		sortedItems,
 		sorts,
-		addSort,
+		upsertSorts,
 		removeSort,
 		clearSorts,
 		resetSorts,
-		setSorts: changeSorts,
+		replaceSorts,
 		getSortDirection,
 		toggleSort,
 		getNextSortingOrder,
@@ -258,11 +275,4 @@ function useSort<T>(data: T[], initialSorts: SortState = []): UseSortReturn<T> {
 	};
 }
 
-export {
-	type SortConfig,
-	type SortOptions,
-	type SortState,
-	type SortType,
-	type UseSortReturn,
-	useSort,
-};
+export { type UseSortReturn, useSort };

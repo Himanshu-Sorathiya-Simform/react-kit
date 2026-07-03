@@ -1,8 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import type { SortOptions } from "../hooks/useSort.ts";
+import type { SortOptionsForType } from "../types/sort.types.ts";
 
-function compareBooleans(a: any, b: any, options: SortOptions = {}) {
+function compareBooleans(
+	a: unknown,
+	b: unknown,
+	options: SortOptionsForType<"boolean"> = {},
+) {
 	const { sortUndefined, desc = false } = options;
 
 	const undefinedResult = handleUndefinedSort(a, b, sortUndefined, desc);
@@ -17,15 +21,19 @@ function compareBooleans(a: any, b: any, options: SortOptions = {}) {
 	return valueA ? 1 : -1;
 }
 
-function compareNumbers(a: any, b: any, options: SortOptions = {}) {
+function compareNumbers(
+	a: unknown,
+	b: unknown,
+	options: SortOptionsForType<"numeric"> = {},
+) {
 	const { sortUndefined, desc = false } = options;
 
 	const undefinedResult = handleUndefinedSort(a, b, sortUndefined, desc);
 
 	if (undefinedResult !== null) return undefinedResult;
 
-	const numA = a === "" || a === null ? NaN : Number(a);
-	const numB = b === "" || b === null ? NaN : Number(b);
+	const numA = Number(a);
+	const numB = Number(b);
 
 	const isANaN = Number.isNaN(numA);
 	const isBNaN = Number.isNaN(numB);
@@ -44,7 +52,11 @@ function compareNumbers(a: any, b: any, options: SortOptions = {}) {
 	return numA - numB;
 }
 
-function compareAlphabetical(a: any, b: any, options: SortOptions = {}) {
+function compareAlphabetical(
+	a: unknown,
+	b: unknown,
+	options: SortOptionsForType<"alphabetical"> = {},
+) {
 	const { desc = false, sortUndefined, caseSensitive = false } = options;
 
 	const undefinedResult = handleUndefinedSort(a, b, sortUndefined, desc);
@@ -59,7 +71,11 @@ function compareAlphabetical(a: any, b: any, options: SortOptions = {}) {
 	});
 }
 
-function compareAlphanumeric(a: any, b: any, options: SortOptions = {}) {
+function compareAlphanumeric(
+	a: unknown,
+	b: unknown,
+	options: SortOptionsForType<"alphanumeric"> = {},
+) {
 	const { desc = false, sortUndefined, caseSensitive = false } = options;
 
 	const undefinedResult = handleUndefinedSort(a, b, sortUndefined, desc);
@@ -75,23 +91,42 @@ function compareAlphanumeric(a: any, b: any, options: SortOptions = {}) {
 	});
 }
 
-function compareDates(a: any, b: any, options: SortOptions = {}) {
+function compareDates(
+	a: unknown,
+	b: unknown,
+	options: SortOptionsForType<"date"> = {},
+) {
 	const { desc = false, sortUndefined } = options;
 
-	const undefinedResult = handleUndefinedSort(a, b, sortUndefined, desc);
+	let undefinedResult = handleUndefinedSort(a, b, sortUndefined, desc);
 
 	if (undefinedResult !== null) return undefinedResult;
 
-	const timeA = new Date(a).getTime();
-	const timeB = new Date(b).getTime();
+	const timeA = new Date(a as any).getTime();
+	const timeB = new Date(b as any).getTime();
 
-	const cleanA = Number.isNaN(timeA) ? 0 : timeA;
-	const cleanB = Number.isNaN(timeB) ? 0 : timeB;
+	const isANaN = Number.isNaN(timeA);
+	const isBNaN = Number.isNaN(timeB);
 
-	return cleanA - cleanB;
+	if (isANaN || isBNaN) {
+		undefinedResult = handleUndefinedSort(
+			isANaN ? undefined : timeA,
+			isBNaN ? undefined : timeB,
+			sortUndefined,
+			desc,
+		);
+
+		if (undefinedResult !== null) return undefinedResult;
+	}
+
+	return timeA - timeB;
 }
 
-function compareBasic(a: any, b: any, options: SortOptions = {}) {
+function compareBasic(
+	a: unknown,
+	b: unknown,
+	options: SortOptionsForType<"basic"> = {},
+) {
 	const { desc = false, sortUndefined } = options;
 
 	const undefinedResult = handleUndefinedSort(a, b, sortUndefined, desc);
@@ -99,13 +134,17 @@ function compareBasic(a: any, b: any, options: SortOptions = {}) {
 	if (undefinedResult !== null) return undefinedResult;
 
 	return (
-		a < b ? -1
-		: a > b ? 1
+		(a as any) < (b as any) ? -1
+		: (a as any) > (b as any) ? 1
 		: 0
 	);
 }
 
-function compareCustom(a: any, b: any, options: SortOptions = {}) {
+function compareCustom(
+	a: unknown,
+	b: unknown,
+	options: Partial<SortOptionsForType<"custom">> = {},
+) {
 	const { desc = false, sortUndefined, compare } = options;
 
 	const undefinedResult = handleUndefinedSort(a, b, sortUndefined, desc);
@@ -117,40 +156,43 @@ function compareCustom(a: any, b: any, options: SortOptions = {}) {
 	}
 
 	return (
-		a < b ? -1
-		: a > b ? 1
+		(a as any) < (b as any) ? -1
+		: (a as any) > (b as any) ? 1
 		: 0
 	);
 }
 
 function handleUndefinedSort(
-	a: any,
-	b: any,
-	option: "first" | "last" | false | -1 | 1 = false,
+	a: unknown,
+	b: unknown,
+	option: "first" | "last" | -1 | 1 = "last",
 	isDescending: boolean,
 ) {
-	const aVal = a ?? undefined;
-	const bVal = b ?? undefined;
+	const aIsMissing = a === undefined || a === null || a === "";
+	const bIsMissing = b === undefined || b === null || b === "";
 
-	if (aVal !== undefined && bVal !== undefined) return null;
-	if (aVal === undefined && bVal === undefined) return 0;
+	if (aIsMissing && bIsMissing) return 0;
 
-	if (option === false) return 0;
+	if (!aIsMissing && !bIsMissing) return null;
 
-	if (option === "first") return aVal === undefined ? -1 : 1;
+	if (option === "first") {
+		return aIsMissing ? -1 : 1;
+	}
 
-	if (option === "last") return aVal === undefined ? 1 : -1;
+	if (option === "last") {
+		return aIsMissing ? 1 : -1;
+	}
 
 	if (option === -1) {
 		const order = isDescending ? 1 : -1;
 
-		return aVal === undefined ? order : -order;
+		return aIsMissing ? order : -order;
 	}
 
 	if (option === 1) {
 		const order = isDescending ? 1 : -1;
 
-		return aVal === undefined ? -order : order;
+		return aIsMissing ? -order : order;
 	}
 
 	return null;

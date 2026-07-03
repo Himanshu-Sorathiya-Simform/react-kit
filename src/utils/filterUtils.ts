@@ -1,25 +1,47 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+type FilterStrategyConfig = {
+	caseSensitive?: boolean | undefined;
+};
+
 const FILTER_STRATEGIES: Record<
 	string,
-	Record<string, (itemValue: any, filterValue: any, config: any) => boolean>
+	Record<
+		string,
+		(
+			itemValue: unknown,
+			filterValue: unknown,
+			config: FilterStrategyConfig,
+		) => boolean
+	>
 > = {
 	text: {
 		contains: (item, filter, config) => {
-			if (config?.caseSensitive) return String(item).includes(String(filter));
+			if (item === null || item === undefined) return false;
+
+			if (config?.caseSensitive) {
+				return String(item).includes(String(filter));
+			}
 
 			return String(item).toLowerCase().includes(String(filter).toLowerCase());
 		},
 
 		equals: (item, filter, config) => {
-			if (config?.caseSensitive) return String(item) === String(filter);
+			if (item === null || item === undefined) return false;
+
+			if (config?.caseSensitive) {
+				return String(item) === String(filter);
+			}
 
 			return String(item).toLowerCase() === String(filter).toLowerCase();
 		},
 
 		startsWith: (item, filter, config) => {
-			if (config?.caseSensitive)
+			if (item === null || item === undefined) return false;
+
+			if (config?.caseSensitive) {
 				return String(item).startsWith(String(filter));
+			}
 
 			return String(item)
 				.toLowerCase()
@@ -27,13 +49,21 @@ const FILTER_STRATEGIES: Record<
 		},
 
 		endsWith: (item, filter, config) => {
-			if (config?.caseSensitive) return String(item).endsWith(String(filter));
+			if (item === null || item === undefined) return false;
+
+			if (config?.caseSensitive) {
+				return String(item).endsWith(String(filter));
+			}
 
 			return String(item).toLowerCase().endsWith(String(filter).toLowerCase());
 		},
 
 		notContains: (item, filter, config) => {
-			if (config?.caseSensitive) return !String(item).includes(String(filter));
+			if (item === null || item === undefined) return true;
+
+			if (config?.caseSensitive) {
+				return !String(item).includes(String(filter));
+			}
 
 			return !String(item)
 				.toLowerCase()
@@ -54,9 +84,20 @@ const FILTER_STRATEGIES: Record<
 		lessThanOrEqual: (itemVal, filterVal) =>
 			Number(itemVal) <= Number(filterVal),
 
-		between: (itemVal, filterVal) =>
-			Number(itemVal) >= Number(filterVal.min)
-			&& Number(itemVal) <= Number(filterVal.max),
+		between: (itemVal, filterVal) => {
+			if (typeof filterVal !== "object" || filterVal === null) return false;
+
+			const { min, max } = filterVal as { min: unknown; max: unknown };
+			if (
+				min === undefined
+				|| min === null
+				|| max === undefined
+				|| max === null
+			)
+				return false;
+
+			return Number(itemVal) >= Number(min) && Number(itemVal) <= Number(max);
+		},
 	},
 
 	boolean: {
@@ -67,19 +108,27 @@ const FILTER_STRATEGIES: Record<
 		equals: (itemVal, filterVal) => {
 			if (!itemVal || !filterVal) return false;
 
-			const itemTime = new Date(itemVal).getTime();
-			const filterTime = new Date(filterVal).getTime();
+			const itemDate = new Date(itemVal as any);
+			const filterDate = new Date(filterVal as any);
 
-			if (Number.isNaN(itemTime) || Number.isNaN(filterTime)) return false;
+			if (
+				Number.isNaN(itemDate.getTime())
+				|| Number.isNaN(filterDate.getTime())
+			)
+				return false;
 
-			return itemTime === filterTime;
+			return (
+				itemDate.getFullYear() === filterDate.getFullYear()
+				&& itemDate.getMonth() === filterDate.getMonth()
+				&& itemDate.getDate() === filterDate.getDate()
+			);
 		},
 
 		before: (itemVal, filterVal) => {
 			if (!itemVal || !filterVal) return false;
 
-			const itemTime = new Date(itemVal).getTime();
-			const filterTime = new Date(filterVal).getTime();
+			const itemTime = new Date(itemVal as any).setHours(0, 0, 0, 0);
+			const filterTime = new Date(filterVal as any).setHours(0, 0, 0, 0);
 
 			if (Number.isNaN(itemTime) || Number.isNaN(filterTime)) return false;
 
@@ -89,8 +138,8 @@ const FILTER_STRATEGIES: Record<
 		after: (itemVal, filterVal) => {
 			if (!itemVal || !filterVal) return false;
 
-			const itemTime = new Date(itemVal).getTime();
-			const filterTime = new Date(filterVal).getTime();
+			const itemTime = new Date(itemVal as any).setHours(0, 0, 0, 0);
+			const filterTime = new Date(filterVal as any).setHours(0, 0, 0, 0);
 
 			if (Number.isNaN(itemTime) || Number.isNaN(filterTime)) return false;
 
@@ -98,11 +147,22 @@ const FILTER_STRATEGIES: Record<
 		},
 
 		between: (itemVal, filterVal) => {
-			if (!itemVal || !filterVal?.min || !filterVal?.max) return false;
+			if (!itemVal || typeof filterVal !== "object" || filterVal === null)
+				return false;
 
-			const itemTime = new Date(itemVal).getTime();
-			const minTime = new Date(filterVal.min).getTime();
-			const maxTime = new Date(filterVal.max).getTime();
+			const { min, max } = filterVal as { min: unknown; max: unknown };
+			if (
+				min === undefined
+				|| min === null
+				|| max === undefined
+				|| max === null
+			)
+				return false;
+
+			const itemTime = new Date(itemVal as any).setHours(0, 0, 0, 0);
+			const minTime = new Date(min as any).setHours(0, 0, 0, 0);
+			const maxTime = new Date(max as any).setHours(0, 0, 0, 0);
+
 			if (
 				Number.isNaN(itemTime)
 				|| Number.isNaN(minTime)
@@ -121,12 +181,14 @@ const FILTER_STRATEGIES: Record<
 	},
 
 	multiselect: {
-		in: (itemVal, filterVal) => filterVal.includes(itemVal),
+		in: (itemVal, filterVal) => (filterVal as unknown[]).includes(itemVal),
 
-		notIn: (itemVal, filterVal) => !filterVal.includes(itemVal),
+		notIn: (itemVal, filterVal) => !(filterVal as unknown[]).includes(itemVal),
 
 		intersects: (itemVal, filterVal) =>
-			itemVal.some((val: any) => filterVal.includes(val)),
+			(itemVal as unknown[]).some((val) =>
+				(filterVal as unknown[]).includes(val),
+			),
 	},
 };
 

@@ -2,31 +2,38 @@ export { ModalLayout } from "./components/Modal.tsx";
 
 export { useDebounce } from "./hooks/useDebounce.ts";
 export { useDebouncedValue } from "./hooks/useDebouncedValue.ts";
-export { useFilter } from "./hooks/useFilter.ts";
+export { type UseFilterReturn, useFilter } from "./hooks/useFilter.ts";
 export { useFuzzySearch } from "./hooks/useFuzzySearch.ts";
 export { useKey } from "./hooks/useKey.ts";
 export { useModal } from "./hooks/useModal.ts";
-export { usePagination } from "./hooks/usePagination.ts";
-export { useSort } from "./hooks/useSort.ts";
+export { type UsePaginationReturn, usePagination } from "./hooks/usePagination.ts";
+export { type UseSortReturn, useSort } from "./hooks/useSort.ts";
 export { useThrottle } from "./hooks/useThrottle.ts";
+
+export type {
+	BooleanOperator,
+	CustomOperator,
+	DateOperator,
+	FilterConfig,
+	FilterOptions,
+	FilterState,
+	FilterType,
+	MultiselectOperator,
+	NumberOperator,
+	SelectOperator,
+	TextOperator,
+} from "./types/filter.types.ts";
+export type {
+	BaseSortConfig,
+	BaseSortOptions,
+	SortConfig,
+	SortOptionsForType,
+	SortState,
+	SortType,
+} from "./types/sort.types.ts";
 
 export { type UseDebounceReturn } from "./hooks/useDebounce.ts";
 export { type UseDebouncedValueReturn } from "./hooks/useDebouncedValue.ts";
-export {
-	type BooleanOperator,
-	type CustomOperator,
-	type DateOperator,
-	type FilterConfig,
-	type FilterOperator,
-	type FilterOptions,
-	type FilterState,
-	type FilterType,
-	type MultiselectOperator,
-	type NumberOperator,
-	type SelectOperator,
-	type TextOperator,
-	type UseFilterReturn,
-} from "./hooks/useFilter.ts";
 export {
 	type FuzzySearchOptions,
 	type UseFuzzySearchFields,
@@ -42,14 +49,6 @@ export {
 	type UseKeyReturn,
 } from "./hooks/useKey.ts";
 export { type UseModalReturn } from "./hooks/useModal.ts";
-export { type UsePaginationReturn } from "./hooks/usePagination.ts";
-export {
-	type SortConfig,
-	type SortOptions,
-	type SortState,
-	type SortType,
-	type UseSortReturn,
-} from "./hooks/useSort.ts";
 export {
 	type ThrottleOptions,
 	type UseThrottleReturn,

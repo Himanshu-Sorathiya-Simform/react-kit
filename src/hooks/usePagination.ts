@@ -113,10 +113,10 @@ function usePagination<T>(
 		previousPage,
 		firstPage,
 		lastPage,
-		setPageIndex: changePageIndex,
 		setPageSize: changePageSize,
-		resetPageIndex,
+		setPageIndex: changePageIndex,
 		resetPageSize,
+		resetPageIndex,
 	};
 }
 
