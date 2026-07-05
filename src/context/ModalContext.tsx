@@ -1,40 +1,56 @@
 import { type ReactNode, createContext, useCallback, useState } from "react";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 interface ModalState {
+	isOpen: boolean;
 	id: string | null;
-	data: any;
+	data: unknown;
 }
 
-interface ModalContextType extends ModalState {
-	openModal: <T = any>(id: string, data?: T) => void;
+interface ModalActionState {
+	openModal: <T>(id: string, data?: T) => void;
 	closeModal: () => void;
+	clearModal: () => void;
 }
 
-const ModalContext = createContext<ModalContextType | undefined>(undefined);
+const ModalStateContext = createContext<ModalState | null>(null);
+const ModalActionContext = createContext<ModalActionState | null>(null);
 
 function ModalProvider({ children }: { children: ReactNode }) {
 	const [state, setState] = useState<ModalState>({
+		isOpen: false,
 		id: null,
 		data: undefined,
 	});
 
-	const openModal = useCallback(<T = any,>(id: string, data?: T) => {
-		setState({ id, data });
+	const openModal = useCallback(<T,>(id: string, data?: T) => {
+		if (typeof id !== "string") {
+			throw new Error(
+				`[ModalContext] Invalid 'id' passed to openModal. Expected a string, but received: ${typeof id}.`,
+			);
+		}
+
+		setState({ isOpen: true, id, data });
 	}, []);
 
 	const closeModal = useCallback(() => {
-		setState({ id: null, data: undefined });
+		setState((prev) => ({ ...prev, isOpen: false }));
+	}, []);
+
+	const clearModal = useCallback(() => {
+		setState({ isOpen: false, id: null, data: undefined });
 	}, []);
 
 	return (
-		<ModalContext.Provider
-			value={{ id: state.id, data: state.data, openModal, closeModal }}
+		<ModalStateContext.Provider
+			value={{ isOpen: state.isOpen, id: state.id, data: state.data }}
 		>
-			{children}
-		</ModalContext.Provider>
+			<ModalActionContext.Provider
+				value={{ openModal, closeModal, clearModal }}
+			>
+				{children}
+			</ModalActionContext.Provider>
+		</ModalStateContext.Provider>
 	);
 }
 
-export { ModalContext, ModalProvider };
+export { ModalActionContext, ModalProvider, ModalStateContext };

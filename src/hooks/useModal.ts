@@ -1,23 +1,43 @@
 import { useContext } from "react";
-import { ModalContext } from "../context/ModalContext";
+import { ModalActionContext, ModalStateContext } from "../context/ModalContext";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
-interface UseModalReturn<TData> {
+interface UseModalStateReturn<TData> {
+	isOpen: boolean;
 	id: string | null;
 	data: TData | undefined;
-	openModal: <T = any>(id: string, data?: T) => void;
-	closeModal: () => void;
 }
 
-function useModal<TData = any>(): UseModalReturn<TData> {
-	const context = useContext(ModalContext);
+interface UseModalActionsReturn {
+	openModal: <T = unknown>(id: string, data?: T) => void;
+	closeModal: () => void;
+	clearModal: () => void;
+}
+
+function useModalState<TData = unknown>(): UseModalStateReturn<TData> {
+	const context = useContext(ModalStateContext);
 
 	if (!context) {
-		throw new Error("useModal must be used within a ModalProvider");
+		throw new Error("useModalState must be used within a ModalProvider");
 	}
 
-	return context as UseModalReturn<TData>;
+	return context as UseModalStateReturn<TData>;
 }
 
-export { type UseModalReturn, useModal };
+function useModalActions(): UseModalActionsReturn {
+	const context = useContext(ModalActionContext);
+
+	if (!context) {
+		throw new Error("useModalActions must be used within a ModalProvider");
+	}
+
+	return context;
+}
+
+function useModal<TData = unknown>() {
+	return {
+		...useModalState<TData>(),
+		...useModalActions(),
+	};
+}
+
+export { useModal, useModalActions, useModalState };
