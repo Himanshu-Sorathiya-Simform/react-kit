@@ -3,7 +3,7 @@ import { useCallback, useRef, useState } from "react";
 type VisibilityId = string | number;
 
 interface UseVisibilityReturn {
-	visibleState: Map<VisibilityId, boolean>;
+	visibleState: Set<VisibilityId>;
 	isVisible: (id: VisibilityId) => boolean;
 	toggleVisibility: (id: VisibilityId) => void;
 	show: (id: VisibilityId) => void;
@@ -17,26 +17,24 @@ interface UseVisibilityReturn {
 function useVisibility(initialIds: VisibilityId[]): UseVisibilityReturn {
 	const initialIdsRef = useRef(initialIds);
 
-	const [visibleState, setVisibleState] = useState(() => {
-		const map = new Map<VisibilityId, boolean>();
-
-		initialIds.forEach((id) => {
-			map.set(id, true);
-		});
-
-		return map;
-	});
+	const [visibleState, setVisibleState] = useState(
+		() => new Set<VisibilityId>(initialIds),
+	);
 
 	const isVisible = useCallback(
-		(id: VisibilityId) => !!visibleState.get(id),
+		(id: VisibilityId) => visibleState.has(id),
 		[visibleState],
 	);
 
 	const toggleVisibility = useCallback((id: VisibilityId) => {
 		setVisibleState((prev) => {
-			const next = new Map(prev);
+			const next = new Set(prev);
 
-			next.set(id, !next.get(id));
+			if (next.has(id)) {
+				next.delete(id);
+			} else {
+				next.add(id);
+			}
 
 			return next;
 		});
@@ -44,9 +42,9 @@ function useVisibility(initialIds: VisibilityId[]): UseVisibilityReturn {
 
 	const show = useCallback((id: VisibilityId) => {
 		setVisibleState((prev) => {
-			const next = new Map(prev);
+			const next = new Set(prev);
 
-			next.set(id, true);
+			next.add(id);
 
 			return next;
 		});
@@ -54,9 +52,9 @@ function useVisibility(initialIds: VisibilityId[]): UseVisibilityReturn {
 
 	const hide = useCallback((id: VisibilityId) => {
 		setVisibleState((prev) => {
-			const next = new Map(prev);
+			const next = new Set(prev);
 
-			next.set(id, false);
+			next.delete(id);
 
 			return next;
 		});
@@ -64,12 +62,11 @@ function useVisibility(initialIds: VisibilityId[]): UseVisibilityReturn {
 
 	const showAll = useCallback((ids?: VisibilityId[]) => {
 		setVisibleState((prev) => {
-			const next = new Map(prev);
-
+			const next = new Set(prev);
 			const targetIds = ids ?? Array.from(next.keys());
 
 			targetIds.forEach((id) => {
-				next.set(id, true);
+				next.add(id);
 			});
 
 			return next;
@@ -78,12 +75,11 @@ function useVisibility(initialIds: VisibilityId[]): UseVisibilityReturn {
 
 	const hideAll = useCallback((ids?: VisibilityId[]) => {
 		setVisibleState((prev) => {
-			const next = new Map(prev);
-
+			const next = new Set(prev);
 			const targetIds = ids ?? Array.from(next.keys());
 
 			targetIds.forEach((id) => {
-				next.set(id, false);
+				next.delete(id);
 			});
 
 			return next;
@@ -91,27 +87,11 @@ function useVisibility(initialIds: VisibilityId[]): UseVisibilityReturn {
 	}, []);
 
 	const replaceVisibility = useCallback((newIds: VisibilityId[]) => {
-		setVisibleState(() => {
-			const map = new Map<VisibilityId, boolean>();
-
-			newIds.forEach((id) => {
-				map.set(id, true);
-			});
-
-			return map;
-		});
+		setVisibleState(() => new Set(newIds));
 	}, []);
 
 	const resetVisibility = useCallback(() => {
-		setVisibleState(() => {
-			const map = new Map<VisibilityId, boolean>();
-
-			initialIdsRef.current.forEach((id) => {
-				map.set(id, true);
-			});
-
-			return map;
-		});
+		setVisibleState(() => new Set(initialIdsRef.current));
 	}, []);
 
 	return {
