@@ -1,52 +1,19 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
-import { type RefObject, useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import { validKeyEventTypes } from "../constants/keyConstants.ts";
-
-type KeyEventType = (typeof validKeyEventTypes)[number];
-
-interface KeyLifecycleOptions {
-	enabled?: boolean;
-	target?: RefObject<HTMLElement | null> | Window;
-}
-
-interface KeyEventModifiers {
-	preventDefault?: boolean;
-	stopPropagation?: boolean;
-	eventType?: KeyEventType;
-}
-
-interface KeyChordModifiers {
-	ctrlKey?: boolean;
-	shiftKey?: boolean;
-	altKey?: boolean;
-	metaKey?: boolean;
-}
-
-interface KeyFilterOptions {
-	requireReset?: boolean;
-	ignoreInputs?: boolean;
-}
-
-interface KeyOptions
-	extends
-		KeyLifecycleOptions,
-		KeyEventModifiers,
-		KeyChordModifiers,
-		KeyFilterOptions {}
+import type { KeyOptions } from "../types/key.types.ts";
 
 type UseKeyReturn = void;
 
 function useKey(
 	key: string,
-	func: (...args: any[]) => void,
+	handler: (e: KeyboardEvent) => void,
 	{
 		enabled = true,
 		preventDefault = true,
 		stopPropagation = true,
 		eventType = "keydown",
-		requireReset = false,
-		ignoreInputs = true,
+		preventRepeat = false,
+		ignoreWhenFocusedInInputs = true,
 		ctrlKey = false,
 		shiftKey = false,
 		altKey = false,
@@ -54,26 +21,34 @@ function useKey(
 		target = window,
 	}: KeyOptions = {},
 ): UseKeyReturn {
-	const funcRef = useRef(func);
+	const funcRef = useRef(handler);
 	const enabledRef = useRef(enabled);
 	const hasFiredRef = useRef(false);
 
-	const targetElement =
-		(target && "current" in target && target.current) || window;
-
-	useEffect(() => {
-		funcRef.current = func;
-	}, [func]);
+	useLayoutEffect(() => {
+		funcRef.current = handler;
+	}, [handler]);
 
 	useEffect(() => {
 		enabledRef.current = enabled;
 	}, [enabled]);
 
 	useEffect(() => {
+		const targetElement =
+			target && "current" in target ? target.current : target;
+
 		if (!targetElement) return;
+
+		const targetKey = key.toLowerCase();
 
 		const resolvedEventType =
 			validKeyEventTypes.includes(eventType) ? eventType : "keydown";
+
+		const shouldPreventRepeat = preventRepeat && resolvedEventType !== "keyup";
+
+		function handleBlur() {
+			hasFiredRef.current = false;
+		}
 
 		function handleKeyUp(e: Event) {
 			if (!(e instanceof KeyboardEvent)) return;
@@ -81,7 +56,7 @@ function useKey(
 			const releasedKey = e.key.toLowerCase();
 
 			if (
-				releasedKey === key.toLowerCase()
+				releasedKey === targetKey
 				|| (ctrlKey && releasedKey === "control")
 				|| (shiftKey && releasedKey === "shift")
 				|| (altKey && releasedKey === "alt")
@@ -97,7 +72,7 @@ function useKey(
 			const activeElement = e.target;
 
 			if (
-				ignoreInputs
+				ignoreWhenFocusedInInputs
 				&& activeElement instanceof HTMLElement
 				&& (activeElement instanceof HTMLInputElement
 					|| activeElement instanceof HTMLTextAreaElement
@@ -112,8 +87,8 @@ function useKey(
 				&& e.altKey === altKey
 				&& e.metaKey === metaKey;
 
-			if (matchesModifiers && key.toLowerCase() === e.key.toLowerCase()) {
-				if (requireReset && hasFiredRef.current) return;
+			if (matchesModifiers && targetKey === e.key.toLowerCase()) {
+				if (shouldPreventRepeat && hasFiredRef.current) return;
 				hasFiredRef.current = true;
 
 				funcRef.current(e);
@@ -124,34 +99,33 @@ function useKey(
 		}
 
 		targetElement.addEventListener(resolvedEventType, handleKeyEvent);
-		targetElement.addEventListener("keyup", handleKeyUp);
+
+		if (shouldPreventRepeat) {
+			targetElement.addEventListener("keyup", handleKeyUp);
+			window.addEventListener("blur", handleBlur);
+		}
 
 		return () => {
 			targetElement.removeEventListener(resolvedEventType, handleKeyEvent);
-			targetElement.removeEventListener("keyup", handleKeyUp);
+
+			if (shouldPreventRepeat) {
+				targetElement.removeEventListener("keyup", handleKeyUp);
+				window.removeEventListener("blur", handleBlur);
+			}
 		};
 	}, [
 		key,
 		preventDefault,
 		stopPropagation,
 		eventType,
-		requireReset,
-		ignoreInputs,
+		preventRepeat,
+		ignoreWhenFocusedInInputs,
 		ctrlKey,
 		shiftKey,
 		altKey,
 		metaKey,
-		targetElement,
+		target,
 	]);
 }
 
-export {
-	type KeyChordModifiers,
-	type KeyEventModifiers,
-	type KeyEventType,
-	type KeyFilterOptions,
-	type KeyLifecycleOptions,
-	type KeyOptions,
-	type UseKeyReturn,
-	useKey,
-};
+export { type UseKeyReturn, useKey };
