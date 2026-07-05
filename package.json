@@ -1,6 +1,6 @@
 {
 	"name": "@himanshu-sorathiya/react-kit",
-	"version": "1.0.12",
+	"version": "1.0.13",
 	"description": "An opinionated collection of react hooks, and reusable UI components.",
 	"type": "module",
 	"module": "./dist/index.js",
