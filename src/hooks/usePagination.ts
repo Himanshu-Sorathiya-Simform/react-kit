@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 
 interface UsePaginationReturn<T> {
-	currentItems: T[];
+	pageItems: T[];
 	pageSize: number;
 	pageIndex: number;
 	totalPages: number;
@@ -9,12 +9,13 @@ interface UsePaginationReturn<T> {
 	canNext: boolean;
 	nextPage: () => void;
 	previousPage: () => void;
-	firstPage: () => void;
-	lastPage: () => void;
-	setPageIndex: (newPageIndex: number) => void;
-	setPageSize: (newPageSize: number) => void;
+	goToFirstPage: () => void;
+	goToLastPage: () => void;
+	goToPage: (newPageIndex: number) => void;
+	changePageSize: (newPageSize: number) => void;
 	resetPageIndex: () => void;
 	resetPageSize: () => void;
+	resetPagination: () => void;
 }
 
 function usePagination<T>(
@@ -28,11 +29,12 @@ function usePagination<T>(
 	const totalPages = Math.max(1, Math.ceil(data.length / Math.max(1, pageSize)));
 
 	const targetPageIndex = Math.min(Math.max(0, pageIndex), totalPages - 1);
+
 	if (pageIndex !== targetPageIndex) {
 		setPageIndex(targetPageIndex);
 	}
 
-	const currentItems = useMemo(() => {
+	const pageItems = useMemo(() => {
 		if (typeof pageSize !== "number" || pageSize < 1) {
 			return [];
 		}
@@ -51,15 +53,15 @@ function usePagination<T>(
 		setPageIndex((prev) => (prev > 0 ? prev - 1 : prev));
 	}, []);
 
-	const firstPage = useCallback(() => {
+	const goToFirstPage = useCallback(() => {
 		setPageIndex(0);
 	}, []);
 
-	const lastPage = useCallback(() => {
+	const goToLastPage = useCallback(() => {
 		setPageIndex(totalPages - 1);
 	}, [totalPages]);
 
-	const changePageIndex = useCallback(
+	const goToPage = useCallback(
 		(newPageIndex: number) => {
 			if (
 				typeof newPageIndex === "number"
@@ -102,8 +104,18 @@ function usePagination<T>(
 		setPageIndex((prev) => Math.min(Math.max(0, prev), newTotalPages - 1));
 	}, [initialPageSize, data.length]);
 
+	const resetPagination = useCallback(() => {
+		setPageSize(Math.max(1, initialPageSize));
+
+		const newTotalPages = Math.max(
+			1,
+			Math.ceil(data.length / Math.max(1, initialPageSize)),
+		);
+		setPageIndex(Math.min(Math.max(0, initialPageIndex), newTotalPages - 1));
+	}, [initialPageSize, initialPageIndex, data.length]);
+
 	return {
-		currentItems,
+		pageItems,
 		pageSize,
 		pageIndex,
 		totalPages,
@@ -111,12 +123,13 @@ function usePagination<T>(
 		canNext,
 		nextPage,
 		previousPage,
-		firstPage,
-		lastPage,
-		setPageSize: changePageSize,
-		setPageIndex: changePageIndex,
-		resetPageSize,
+		goToFirstPage,
+		goToLastPage,
+		goToPage,
+		changePageSize,
 		resetPageIndex,
+		resetPageSize,
+		resetPagination,
 	};
 }
 
