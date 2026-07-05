@@ -1,39 +1,23 @@
 import { useMemo } from "react";
+import type {
+	FlatIndexedItem,
+	FuzzySearchOptions,
+	IndexedToken,
+	ScoredItem,
+} from "../types/fuzzySearch.types.ts";
 import { calculateScore } from "../utils/fuzzySearchUtils.ts";
 import { getValue } from "../utils/utils.ts";
 
-interface FuzzySearchOptions {
-	threshold?: number;
-	caseSensitive?: boolean;
-	matchStrategy?: "any" | "all";
-	exactPhraseBonus?: boolean;
-}
-
-interface IndexedToken {
-	text: string;
+type UseFuzzySearchFields<T> = {
+	field: Extract<keyof T, string>;
 	weight: number;
-}
-
-interface FlatIndexedItem<T> {
-	item: T;
-	index: number;
-	tokens: IndexedToken[];
-	combinedFlatText: string;
-}
-
-interface ScoredItem<T> {
-	item: T;
-	score: number;
-	index: number;
-}
-
-type UseFuzzySearchFields = [string, number][];
+}[];
 type UseFuzzySearchReturn<T> = T[];
 
 function useFuzzySearch<T>(
 	data: T[],
 	query: string,
-	fields: UseFuzzySearchFields,
+	fields: UseFuzzySearchFields<T>,
 	options: FuzzySearchOptions = {},
 ): UseFuzzySearchReturn<T> {
 	const targetThreshold = options.threshold ?? 0.01;
@@ -50,8 +34,8 @@ function useFuzzySearch<T>(
 			const tokens: IndexedToken[] = [];
 			const rawTextPieces: string[] = [];
 
-			for (const [path, weight] of fields) {
-				const fieldValue = getValue(item, path);
+			for (const { field, weight } of fields) {
+				const fieldValue = getValue(item, field);
 
 				if (Array.isArray(fieldValue)) {
 					for (const arrayValue of fieldValue) {
@@ -227,9 +211,4 @@ function useFuzzySearch<T>(
 	return filteredAndSortedData;
 }
 
-export {
-	type FuzzySearchOptions,
-	type UseFuzzySearchFields,
-	type UseFuzzySearchReturn,
-	useFuzzySearch,
-};
+export { type UseFuzzySearchFields, type UseFuzzySearchReturn, useFuzzySearch };
