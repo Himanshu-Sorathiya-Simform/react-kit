@@ -19,6 +19,10 @@ export {
 } from "./hooks/useModal.ts";
 export { type UseOrderReturn, useOrder } from "./hooks/useOrder.ts";
 export { type UsePaginationReturn, usePagination } from "./hooks/usePagination.ts";
+export {
+	type UseSingleSelectionReturn,
+	useSingleSelection,
+} from "./hooks/useSingleSelection.ts";
 export { type UseSortReturn, useSort } from "./hooks/useSort.ts";
 export { useThrottle } from "./hooks/useThrottle.ts";
 
