@@ -6,6 +6,7 @@ export { type UseFilterReturn, useFilter } from "./hooks/useFilter.ts";
 export { useFuzzySearch } from "./hooks/useFuzzySearch.ts";
 export { type UseKeyReturn, useKey } from "./hooks/useKey.ts";
 export { useModal } from "./hooks/useModal.ts";
+export { type UseOrderReturn, useOrder } from "./hooks/useOrder.ts";
 export { type UsePaginationReturn, usePagination } from "./hooks/usePagination.ts";
 export { type UseSortReturn, useSort } from "./hooks/useSort.ts";
 export { useThrottle } from "./hooks/useThrottle.ts";
