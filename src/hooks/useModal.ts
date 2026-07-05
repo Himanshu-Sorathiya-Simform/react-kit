@@ -13,6 +13,8 @@ interface UseModalActionsReturn {
 	clearModal: () => void;
 }
 
+type UseModalReturn<TData> = UseModalStateReturn<TData> & UseModalActionsReturn;
+
 function useModalState<TData = unknown>(): UseModalStateReturn<TData> {
 	const context = useContext(ModalStateContext);
 
@@ -33,11 +35,18 @@ function useModalActions(): UseModalActionsReturn {
 	return context;
 }
 
-function useModal<TData = unknown>() {
+function useModal<TData = unknown>(): UseModalReturn<TData> {
 	return {
 		...useModalState<TData>(),
 		...useModalActions(),
 	};
 }
 
-export { useModal, useModalActions, useModalState };
+export {
+	type UseModalActionsReturn,
+	type UseModalReturn,
+	type UseModalStateReturn,
+	useModal,
+	useModalActions,
+	useModalState,
+};

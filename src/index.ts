@@ -5,7 +5,14 @@ export { useDebouncedValue } from "./hooks/useDebouncedValue.ts";
 export { type UseFilterReturn, useFilter } from "./hooks/useFilter.ts";
 export { useFuzzySearch } from "./hooks/useFuzzySearch.ts";
 export { type UseKeyReturn, useKey } from "./hooks/useKey.ts";
-export { useModal } from "./hooks/useModal.ts";
+export {
+	type UseModalActionsReturn,
+	type UseModalReturn,
+	type UseModalStateReturn,
+	useModal,
+	useModalActions,
+	useModalState,
+} from "./hooks/useModal.ts";
 export { type UseOrderReturn, useOrder } from "./hooks/useOrder.ts";
 export { type UsePaginationReturn, usePagination } from "./hooks/usePagination.ts";
 export { type UseSortReturn, useSort } from "./hooks/useSort.ts";
@@ -24,6 +31,7 @@ export type {
 	SelectOperator,
 	TextOperator,
 } from "./types/filter.types.ts";
+export type { BaseKeyOptions, KeyEventType, KeyOptions } from "./types/key.types.ts";
 export type {
 	BaseSortConfig,
 	BaseSortOptions,
@@ -39,9 +47,7 @@ export {
 	type UseFuzzySearchFields,
 	type UseFuzzySearchReturn,
 } from "./hooks/useFuzzySearch.ts";
-export { type UseModalReturn } from "./hooks/useModal.ts";
 export {
 	type ThrottleOptions,
 	type UseThrottleReturn,
 } from "./hooks/useThrottle.ts";
-export type { BaseKeyOptions, KeyEventType, KeyOptions } from "./types/key.types.ts";
