@@ -17,6 +17,10 @@ export {
 	useModalActions,
 	useModalState,
 } from "./hooks/useModal.ts";
+export {
+	type UseMultipleSelectionReturn,
+	useMultipleSelection,
+} from "./hooks/useMultipleSelection.ts";
 export { type UseOrderReturn, useOrder } from "./hooks/useOrder.ts";
 export { type UsePaginationReturn, usePagination } from "./hooks/usePagination.ts";
 export {
@@ -55,6 +59,7 @@ export type {
 	SortType,
 } from "./types/sort.types.ts";
 
+export { type UseDebounceReturn } from "./hooks/useDebounce.ts";
 export { type UseDebouncedValueReturn } from "./hooks/useDebouncedValue.ts";
 export {
 	type ThrottleOptions,
