@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import { ModalActionContext, ModalStateContext } from "../context/ModalContext";
+import { ModalActionContext, ModalStateContext } from "./ModalContext.tsx";
 
 interface UseModalStateReturn<TData> {
 	isOpen: boolean;

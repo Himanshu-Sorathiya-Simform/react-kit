@@ -1,5 +1,5 @@
 import type { RefObject } from "react";
-import type { validKeyEventTypes } from "../constants/keyConstants.ts";
+import type { validKeyEventTypes } from "./constants.ts";
 
 type KeyEventType = (typeof validKeyEventTypes)[number];
 

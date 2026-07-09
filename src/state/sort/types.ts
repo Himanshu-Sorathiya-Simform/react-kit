@@ -39,5 +39,5 @@ export type {
 	SortConfig,
 	SortOptionsForType,
 	SortState,
-	SortType
+	SortType,
 };

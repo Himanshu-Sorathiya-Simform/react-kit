@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef } from "react";
-import { validKeyEventTypes } from "../constants/keyConstants.ts";
-import type { KeyOptions } from "../types/key.types.ts";
+import { validKeyEventTypes } from "./constants.ts";
+import type { KeyOptions } from "./types.ts";
 
 type UseKeyReturn = void;
 

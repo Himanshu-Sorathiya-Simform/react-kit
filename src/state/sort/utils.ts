@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import type { SortOptionsForType } from "../types/sort.types.ts";
+import type { SortOptionsForType } from "./types.ts";
 
 function compareBooleans(
 	a: unknown,

@@ -1,10 +1,11 @@
 import { useCallback, useMemo, useState } from "react";
+import { getValue } from "../../shared/utils.ts";
 import type {
 	SortConfig,
 	SortOptionsForType,
 	SortState,
 	SortType,
-} from "../types/sort.types.ts";
+} from "./types.ts";
 import {
 	compareAlphabetical,
 	compareAlphanumeric,
@@ -13,8 +14,7 @@ import {
 	compareCustom,
 	compareDates,
 	compareNumbers,
-} from "../utils/sortUtils.ts";
-import { getValue } from "../utils/utils.ts";
+} from "./utils.ts";
 
 interface UseSortReturn<T> {
 	sortedItems: T[];

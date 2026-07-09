@@ -7,7 +7,7 @@ import {
 	useState,
 } from "react";
 import { createPortal } from "react-dom";
-import { useModalActions, useModalState } from "../hooks/useModal.ts";
+import { useModalActions, useModalState } from "./useModal.ts";
 
 interface ModalLayoutProps {
 	modalId: string;
@@ -109,4 +109,4 @@ function ModalLayout({
 	);
 }
 
-export { ModalLayout };
+export { type ModalLayoutProps, ModalLayout };

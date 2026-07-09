@@ -1,11 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { ThrottleOptions } from "./types.ts";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-
-interface ThrottleOptions {
-	leading?: boolean;
-	trailing?: boolean;
-}
 
 interface UseThrottleReturn<Args extends any[]> {
 	throttledFunc: (...args: Args) => void;

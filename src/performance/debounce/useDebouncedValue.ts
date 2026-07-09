@@ -1,18 +1,13 @@
 import { useEffect, useState } from "react";
+import type { DebounceOptions } from "./types.ts";
 import { useDebounce } from "./useDebounce";
-
-interface DebouncedValueOptions {
-	maxWait?: number;
-	leading?: boolean;
-	trailing?: boolean;
-}
 
 type UseDebouncedValueReturn<T> = T;
 
 function useDebouncedValue<T>(
 	value: T,
 	delay: number,
-	options: DebouncedValueOptions = {},
+	options: DebounceOptions = {},
 ): UseDebouncedValueReturn<T> {
 	const [debouncedValue, setDebouncedValue] = useState<T>(value);
 

@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import { getValue } from "../utils/utils.ts";
+import { getValue } from "../../shared/utils.ts";
 
 interface UseMultipleSelectionReturn<T> {
 	selectedIds: (string | number)[];

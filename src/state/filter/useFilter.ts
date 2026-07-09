@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
-import type { FilterConfig, FilterState } from "../types/filter.types.ts";
-import { FILTER_STRATEGIES } from "../utils/filterUtils.ts";
-import { getValue } from "../utils/utils.ts";
+import { getValue } from "../../shared/utils.ts";
+import type { FilterConfig, FilterState } from "./types.ts";
+import { FILTER_STRATEGIES } from "./utils.ts";
 
 interface UseFilterReturn<T> {
 	filteredItems: T[];

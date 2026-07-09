@@ -1,12 +1,12 @@
 import { useMemo } from "react";
+import { getValue } from "../../shared/utils.ts";
 import type {
 	FlatIndexedItem,
 	FuzzySearchOptions,
 	IndexedToken,
 	ScoredItem,
-} from "../types/fuzzySearch.types.ts";
-import { calculateScore } from "../utils/fuzzySearchUtils.ts";
-import { getValue } from "../utils/utils.ts";
+} from "./types.ts";
+import { calculateScore } from "./utils.ts";
 
 type UseFuzzySearchFields<T> = {
 	field: Extract<keyof T, string>;

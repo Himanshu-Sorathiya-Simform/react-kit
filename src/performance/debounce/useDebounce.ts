@@ -1,12 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { useCallback, useEffect, useRef, useState } from "react";
-
-interface DebounceOptions {
-	maxWait?: number;
-	leading?: boolean;
-	trailing?: boolean;
-}
+import type { DebounceOptions } from "./types.ts";
 
 interface UseDebounceReturn<Args extends any[]> {
 	debouncedFunc: (...args: Args) => void;
