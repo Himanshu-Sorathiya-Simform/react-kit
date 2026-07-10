@@ -1,22 +1,24 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { getValue } from "../../shared/utils.ts";
 
+type PinId = string | number;
+
 interface UsePinReturn<T> {
-	pinnedIds: (string | number)[];
+	pinnedIds: PinId[];
 	pinnedItems: T[];
 	unpinnedItems: T[];
 	pinnedCount: number;
 	hasPins: boolean;
 	isAtMaxLimit: boolean;
-	pin: (itemOrId: string | number | T) => void;
-	unpin: (itemOrId: string | number | T) => void;
-	togglePin: (itemOrId: string | number | T) => void;
-	isPinned: (itemOrId: string | number | T) => boolean;
+	pin: (itemOrId: PinId | T) => void;
+	unpin: (itemOrId: PinId | T) => void;
+	togglePin: (itemOrId: PinId | T) => void;
+	isPinned: (itemOrId: PinId | T) => boolean;
 	clearPins: () => void;
 	resetPins: () => void;
-	replacePins: (newPinnedItems: (string | number)[] | T[]) => void;
-	pinMultiple: (newItems: (string | number)[] | T[]) => void;
-	unpinMultiple: (itemsToRemove: (string | number)[] | T[]) => void;
+	replacePins: (newPinnedItems: PinId[] | T[]) => void;
+	pinMultiple: (newItems: PinId[] | T[]) => void;
+	unpinMultiple: (itemsToRemove: PinId[] | T[]) => void;
 }
 
 function usePin<T = unknown>({
@@ -27,13 +29,15 @@ function usePin<T = unknown>({
 }: {
 	items: T[];
 	field?: string;
-	initialPinnedIds?: (string | number)[];
+	initialPinnedIds?: PinId[];
 	maxPins?: number;
 }): UsePinReturn<T> {
-	const [pinnedIds, setPinnedIds] = useState(new Set(initialPinnedIds));
+	const initialPinnedIdsRef = useRef(initialPinnedIds);
+
+	const [pinnedIds, setPinnedIds] = useState(() => new Set(initialPinnedIds));
 
 	const pin = useCallback(
-		(itemOrId: number | string | T) => {
+		(itemOrId: PinId | T) => {
 			setPinnedIds((prev) => {
 				if (prev.size >= maxPins) return prev;
 
@@ -49,7 +53,7 @@ function usePin<T = unknown>({
 	);
 
 	const unpin = useCallback(
-		(itemOrId: number | string | T) => {
+		(itemOrId: PinId | T) => {
 			setPinnedIds((prev) => {
 				const newSet = new Set(prev);
 				const idToRemove = getValue(itemOrId, field);
@@ -63,7 +67,7 @@ function usePin<T = unknown>({
 	);
 
 	const togglePin = useCallback(
-		(itemOrId: number | string | T) => {
+		(itemOrId: PinId | T) => {
 			setPinnedIds((prev) => {
 				const newSet = new Set(prev);
 				const idToToggle = getValue(itemOrId, field);
@@ -82,7 +86,7 @@ function usePin<T = unknown>({
 	);
 
 	const isPinned = useCallback(
-		(itemOrId: number | string | T) => {
+		(itemOrId: PinId | T) => {
 			const idToCheck = getValue(itemOrId, field);
 
 			return pinnedIds.has(idToCheck);
@@ -93,14 +97,14 @@ function usePin<T = unknown>({
 	const clearPins = useCallback(() => setPinnedIds(new Set()), []);
 
 	const resetPins = useCallback(
-		() => setPinnedIds(new Set(initialPinnedIds)),
-		[initialPinnedIds],
+		() => setPinnedIds(new Set(initialPinnedIdsRef.current)),
+		[initialPinnedIdsRef],
 	);
 
 	const replacePins = useCallback(
-		(newPinnedItems: (number | string)[] | T[]) => {
-			const newPinnedItemIds: (string | number)[] = newPinnedItems.map(
-				(item) => getValue(item, field),
+		(newPinnedItems: PinId[] | T[]) => {
+			const newPinnedItemIds: PinId[] = newPinnedItems.map((item) =>
+				getValue(item, field),
 			);
 
 			setPinnedIds(new Set(newPinnedItemIds.slice(0, maxPins)));
@@ -109,10 +113,10 @@ function usePin<T = unknown>({
 	);
 
 	const pinMultiple = useCallback(
-		(newItems: (string | number)[] | T[]) => {
+		(newItems: PinId[] | T[]) => {
 			setPinnedIds((prev) => {
 				const newSet = new Set(prev);
-				const itemIdsToAdd: (string | number)[] = newItems.map((item) =>
+				const itemIdsToAdd: PinId[] = newItems.map((item) =>
 					getValue(item, field),
 				);
 
@@ -129,11 +133,11 @@ function usePin<T = unknown>({
 	);
 
 	const unpinMultiple = useCallback(
-		(itemsToRemove: (string | number)[] | T[]) => {
+		(itemsToRemove: PinId[] | T[]) => {
 			setPinnedIds((prev) => {
 				const newSet = new Set(prev);
-				const itemIdsToRemove: (string | number)[] = itemsToRemove.map(
-					(item) => getValue(item, field),
+				const itemIdsToRemove: PinId[] = itemsToRemove.map((item) =>
+					getValue(item, field),
 				);
 
 				itemIdsToRemove.forEach((id) => newSet.delete(id));

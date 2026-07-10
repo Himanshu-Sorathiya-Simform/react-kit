@@ -1,24 +1,26 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { getValue } from "../../shared/utils.ts";
 
+type SelectionId = string | number;
+
 interface UseMultipleSelectionReturn<T> {
-	selectedIds: (string | number)[];
+	selectedIds: SelectionId[];
 	selectedCount: number;
 	selectedItems: T[];
 	isEmpty: boolean;
-	select: (item: string | number | T) => void;
-	deselect: (item: string | number | T) => void;
-	toggle: (item: string | number | T) => void;
-	isSelected: (item: string | number | T) => boolean;
-	replaceSelection: (newSelectedItems: (string | number)[] | T[]) => void;
+	select: (item: SelectionId | T) => void;
+	deselect: (item: SelectionId | T) => void;
+	toggle: (item: SelectionId | T) => void;
+	isSelected: (item: SelectionId | T) => boolean;
 	resetSelection: () => void;
+	replaceSelection: (newSelectedItems: SelectionId[] | T[]) => void;
 	selectAll: () => void;
 	deselectAll: () => void;
 	toggleAll: () => void;
 	invertSelection: () => void;
-	selectMultiple: (newItems: (string | number)[] | T[]) => void;
-	deselectMultiple: (itemsToRemove: (string | number)[] | T[]) => void;
-	retainOnly: (itemsToRetain: (string | number)[] | T[]) => void;
+	selectMultiple: (newItems: SelectionId[] | T[]) => void;
+	deselectMultiple: (itemsToRemove: SelectionId[] | T[]) => void;
+	retainOnly: (itemsToRetain: SelectionId[] | T[]) => void;
 }
 
 function useMultipleSelection<T = unknown>({
@@ -28,12 +30,16 @@ function useMultipleSelection<T = unknown>({
 }: {
 	items: T[];
 	field?: string;
-	initialSelectedIds?: (number | string)[];
+	initialSelectedIds?: SelectionId[];
 }): UseMultipleSelectionReturn<T> {
-	const [selectedIds, setSelectedIds] = useState(new Set(initialSelectedIds));
+	const initialSelectedIdsRef = useRef(initialSelectedIds);
+
+	const [selectedIds, setSelectedIds] = useState(
+		() => new Set(initialSelectedIds),
+	);
 
 	const select = useCallback(
-		(item: number | string | T) => {
+		(item: SelectionId | T) => {
 			setSelectedIds((prev) => {
 				const newSet = new Set(prev);
 
@@ -47,7 +53,7 @@ function useMultipleSelection<T = unknown>({
 	);
 
 	const deselect = useCallback(
-		(item: number | string | T) => {
+		(item: SelectionId | T) => {
 			setSelectedIds((prev) => {
 				const newSet = new Set(prev);
 
@@ -61,7 +67,7 @@ function useMultipleSelection<T = unknown>({
 	);
 
 	const toggle = useCallback(
-		(item: number | string | T) => {
+		(item: SelectionId | T) => {
 			setSelectedIds((prev) => {
 				const newSet = new Set(prev);
 
@@ -76,7 +82,7 @@ function useMultipleSelection<T = unknown>({
 	);
 
 	const isSelected = useCallback(
-		(item: number | string | T) => {
+		(item: SelectionId | T) => {
 			const itemIdToCheck = getValue(item, field);
 
 			return selectedIds.has(itemIdToCheck);
@@ -84,10 +90,15 @@ function useMultipleSelection<T = unknown>({
 		[selectedIds, field],
 	);
 
+	const resetSelection = useCallback(
+		() => setSelectedIds(new Set(initialSelectedIdsRef.current)),
+		[],
+	);
+
 	const replaceSelection = useCallback(
-		(newSelectedItems: (number | string)[] | T[]) => {
-			const newSelectedItemsId: (string | number)[] = newSelectedItems.map(
-				(item) => getValue(item, field),
+		(newSelectedItems: SelectionId[] | T[]) => {
+			const newSelectedItemsId: SelectionId[] = newSelectedItems.map((item) =>
+				getValue(item, field),
 			);
 
 			setSelectedIds(new Set(newSelectedItemsId));
@@ -95,15 +106,8 @@ function useMultipleSelection<T = unknown>({
 		[field],
 	);
 
-	const resetSelection = useCallback(
-		() => setSelectedIds(new Set(initialSelectedIds)),
-		[initialSelectedIds],
-	);
-
 	const selectAll = useCallback(() => {
-		const AllItemsId: (string | number)[] = items.map((item) =>
-			getValue(item, field),
-		);
+		const AllItemsId: SelectionId[] = items.map((item) => getValue(item, field));
 
 		setSelectedIds(new Set(AllItemsId));
 	}, [items, field]);
@@ -117,7 +121,7 @@ function useMultipleSelection<T = unknown>({
 			setSelectedIds((prev) => {
 				if (prev.size === items.length) return new Set();
 
-				const allItemsIds: (string | number)[] = items.map((item) =>
+				const allItemsIds: SelectionId[] = items.map((item) =>
 					getValue(item, field),
 				);
 
@@ -131,7 +135,7 @@ function useMultipleSelection<T = unknown>({
 			setSelectedIds((prev) => {
 				if (prev.size === items.length) return new Set();
 
-				const notSelectedItemIds: (string | number)[] = items
+				const notSelectedItemIds: SelectionId[] = items
 					.filter((item) => !prev.has(getValue(item, field)))
 					.map((item) => getValue(item, field));
 
@@ -141,11 +145,11 @@ function useMultipleSelection<T = unknown>({
 	);
 
 	const selectMultiple = useCallback(
-		(newItems: (string | number)[] | T[]) => {
+		(newItems: SelectionId[] | T[]) => {
 			setSelectedIds((prev) => {
 				const newSet = new Set(prev);
 
-				const newItemIdsToAdd: (string | number)[] = newItems.map((item) =>
+				const newItemIdsToAdd: SelectionId[] = newItems.map((item) =>
 					getValue(item, field),
 				);
 				newItemIdsToAdd.forEach((field) => newSet.add(field));
@@ -157,12 +161,12 @@ function useMultipleSelection<T = unknown>({
 	);
 
 	const deselectMultiple = useCallback(
-		(itemsToRemove: (string | number)[] | T[]) => {
+		(itemsToRemove: SelectionId[] | T[]) => {
 			setSelectedIds((prev) => {
 				const newSet = new Set(prev);
 
-				const newItemIdsToRemove: (string | number)[] = itemsToRemove.map(
-					(item) => getValue(item, field),
+				const newItemIdsToRemove: SelectionId[] = itemsToRemove.map((item) =>
+					getValue(item, field),
 				);
 				newItemIdsToRemove.forEach((field) => newSet.delete(field));
 
@@ -173,12 +177,12 @@ function useMultipleSelection<T = unknown>({
 	);
 
 	const retainOnly = useCallback(
-		(itemsToRetain: (string | number)[] | T[]) => {
+		(itemsToRetain: SelectionId[] | T[]) => {
 			setSelectedIds((prev) => {
-				const newSet = new Set<number | string>();
+				const newSet = new Set<SelectionId>();
 
-				const newItemIdsToRetain: (string | number)[] = itemsToRetain.map(
-					(item) => getValue(item, field),
+				const newItemIdsToRetain: SelectionId[] = itemsToRetain.map((item) =>
+					getValue(item, field),
 				);
 				newItemIdsToRetain.forEach(
 					(field) => prev.has(field) && newSet.add(field),

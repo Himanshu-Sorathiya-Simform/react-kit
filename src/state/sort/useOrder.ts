@@ -10,13 +10,14 @@ interface UseOrderReturn<T> {
 	moveToBottom: (index: number) => void;
 	move: (fromIndex: number, toIndex: number) => void;
 	swap: (indexA: number, indexB: number) => void;
-	replaceOrder: (newOrderedItems: T[]) => void;
 	resetOrder: () => void;
+	replaceOrder: (newOrderedItems: T[]) => void;
 }
 
 function useOrder<T>(initialItems: T[]): UseOrderReturn<T> {
 	const initialItemsRef = useRef(initialItems);
-	const [orderedItems, setOrderedItems] = useState(initialItems);
+
+	const [orderedItems, setOrderedItems] = useState(() => initialItems);
 
 	const moveUp = useCallback((index: number) => {
 		if (typeof index !== "number") return;
@@ -132,12 +133,12 @@ function useOrder<T>(initialItems: T[]): UseOrderReturn<T> {
 		});
 	}, []);
 
-	const replaceOrder = useCallback((newOrderedItems: T[]) => {
-		setOrderedItems(newOrderedItems);
-	}, []);
-
 	const resetOrder = useCallback(() => {
 		setOrderedItems(initialItemsRef.current);
+	}, []);
+
+	const replaceOrder = useCallback((newOrderedItems: T[]) => {
+		setOrderedItems(newOrderedItems);
 	}, []);
 
 	return {

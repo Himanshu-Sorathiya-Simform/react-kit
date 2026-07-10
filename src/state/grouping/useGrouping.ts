@@ -10,6 +10,7 @@ interface UseGroupingReturn<T> {
 	activeGroupBy: string | undefined;
 	changeGroupBy: (newField: string) => void;
 	clearGrouping: () => void;
+	resetGrouping: () => void;
 	getGroupItems: (groupKey: string) => T[];
 }
 
@@ -20,9 +21,7 @@ function useGrouping<T = unknown>({
 	items: T[];
 	initialGroupBy?: string;
 }): UseGroupingReturn<T> {
-	const [activeGroupBy, setActiveGroupBy] = useState<string | undefined>(
-		initialGroupBy,
-	);
+	const [activeGroupBy, setActiveGroupBy] = useState(initialGroupBy);
 
 	const groupedRecord = useMemo(() => {
 		if (!activeGroupBy) {
@@ -66,6 +65,10 @@ function useGrouping<T = unknown>({
 		setActiveGroupBy(undefined);
 	}, []);
 
+	const resetGrouping = useCallback(() => {
+		setActiveGroupBy(initialGroupBy);
+	}, [initialGroupBy]);
+
 	const getGroupItems = useCallback(
 		(groupKey: string) => {
 			return groupedRecord[groupKey] || [];
@@ -81,6 +84,7 @@ function useGrouping<T = unknown>({
 		activeGroupBy,
 		changeGroupBy,
 		clearGrouping,
+		resetGrouping,
 		getGroupItems,
 	};
 }

@@ -1,32 +1,33 @@
 import { useCallback, useState } from "react";
 
+type SelectionId = string | number;
+
 interface UseSingleSelectionReturn {
-	selectedId: string | number | undefined;
+	selectedId: SelectionId | undefined;
 	hasSelection: boolean;
-	select: (id: string | number) => void;
+	select: (id: SelectionId) => void;
 	deselect: () => void;
-	toggle: (id: string | number) => void;
-	isSelected: (id: string | number) => boolean;
+	toggle: (id: SelectionId) => void;
+	isSelected: (id: SelectionId) => boolean;
 	resetSelection: () => void;
 }
 
 function useSingleSelection(
-	initialSelectedId?: number | string,
+	initialSelectedId?: SelectionId,
 ): UseSingleSelectionReturn {
 	const [selectedId, setSelectedId] = useState(initialSelectedId);
 
-	const select = useCallback((id: number | string) => setSelectedId(id), []);
+	const select = useCallback((id: SelectionId) => setSelectedId(id), []);
 
 	const deselect = useCallback(() => setSelectedId(undefined), []);
 
 	const toggle = useCallback(
-		(id: number | string) =>
-			setSelectedId((prev) => (prev === id ? undefined : id)),
+		(id: SelectionId) => setSelectedId((prev) => (prev === id ? undefined : id)),
 		[],
 	);
 
 	const isSelected = useCallback(
-		(id: number | string) => selectedId === id,
+		(id: SelectionId) => selectedId === id,
 		[selectedId],
 	);
 

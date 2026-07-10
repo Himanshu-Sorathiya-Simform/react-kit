@@ -1,105 +1,160 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
+import { getValue } from "../../shared/utils.ts";
 
-type VisibilityId = string | number;
+type VisibilityId = number | string;
 
-interface UseVisibilityReturn {
-	visibleState: Set<VisibilityId>;
-	isVisible: (id: VisibilityId) => boolean;
-	toggleVisibility: (id: VisibilityId) => void;
-	show: (id: VisibilityId) => void;
-	hide: (id: VisibilityId) => void;
-	showAll: (ids?: VisibilityId[]) => void;
-	hideAll: (ids?: VisibilityId[]) => void;
-	replaceVisibility: (newIds: VisibilityId[]) => void;
+interface UseVisibilityReturn<T> {
+	visibleIds: VisibilityId[];
+	visibleItems: T[];
+	hiddenItems: T[];
+	visibleCount: number;
+	isVisible: (itemOrId: VisibilityId | T) => boolean;
+	show: (itemOrId: VisibilityId | T) => void;
+	hide: (itemOrId: VisibilityId | T) => void;
+	toggleVisibility: (itemOrId: VisibilityId | T) => void;
+	showAll: (itemsArray?: VisibilityId[] | T[]) => void;
+	hideAll: (itemsArray?: VisibilityId[] | T[]) => void;
 	resetVisibility: () => void;
+	replaceVisibility: (newItems: VisibilityId[] | T[]) => void;
 }
 
-function useVisibility(initialIds: VisibilityId[]): UseVisibilityReturn {
-	const initialIdsRef = useRef(initialIds);
+function useVisibility<T = unknown>({
+	items,
+	field,
+	initialVisibleIds = [],
+}: {
+	items: T[];
+	field?: string;
+	initialVisibleIds?: VisibilityId[];
+}): UseVisibilityReturn<T> {
+	const initialIdsRef = useRef(initialVisibleIds);
 
-	const [visibleState, setVisibleState] = useState(
-		() => new Set<VisibilityId>(initialIds),
-	);
+	const [visibleIds, setVisibleIds] = useState(() => new Set(initialVisibleIds));
 
 	const isVisible = useCallback(
-		(id: VisibilityId) => visibleState.has(id),
-		[visibleState],
+		(itemOrId: VisibilityId | T) => {
+			const idToCheck = getValue(itemOrId, field);
+
+			return visibleIds.has(idToCheck);
+		},
+		[visibleIds, field],
 	);
 
-	const toggleVisibility = useCallback((id: VisibilityId) => {
-		setVisibleState((prev) => {
-			const next = new Set(prev);
+	const show = useCallback(
+		(itemOrId: VisibilityId | T) => {
+			setVisibleIds((prev) => {
+				const newSet = new Set(prev);
+				const idToAdd = getValue(itemOrId, field);
 
-			if (next.has(id)) {
-				next.delete(id);
-			} else {
-				next.add(id);
-			}
+				newSet.add(idToAdd);
 
-			return next;
-		});
-	}, []);
-
-	const show = useCallback((id: VisibilityId) => {
-		setVisibleState((prev) => {
-			const next = new Set(prev);
-
-			next.add(id);
-
-			return next;
-		});
-	}, []);
-
-	const hide = useCallback((id: VisibilityId) => {
-		setVisibleState((prev) => {
-			const next = new Set(prev);
-
-			next.delete(id);
-
-			return next;
-		});
-	}, []);
-
-	const showAll = useCallback((ids?: VisibilityId[]) => {
-		setVisibleState((prev) => {
-			const next = new Set(prev);
-			const targetIds = ids ?? Array.from(next.keys());
-
-			targetIds.forEach((id) => {
-				next.add(id);
+				return newSet;
 			});
+		},
+		[field],
+	);
 
-			return next;
-		});
-	}, []);
+	const hide = useCallback(
+		(itemOrId: VisibilityId | T) => {
+			setVisibleIds((prev) => {
+				const newSet = new Set(prev);
+				const idToRemove = getValue(itemOrId, field);
 
-	const hideAll = useCallback((ids?: VisibilityId[]) => {
-		setVisibleState((prev) => {
-			const next = new Set(prev);
-			const targetIds = ids ?? Array.from(next.keys());
+				newSet.delete(idToRemove);
 
-			targetIds.forEach((id) => {
-				next.delete(id);
+				return newSet;
 			});
+		},
+		[field],
+	);
 
-			return next;
-		});
-	}, []);
+	const toggleVisibility = useCallback(
+		(itemOrId: VisibilityId | T) => {
+			setVisibleIds((prev) => {
+				const newSet = new Set(prev);
+				const idToToggle = getValue(itemOrId, field);
 
-	const replaceVisibility = useCallback((newIds: VisibilityId[]) => {
-		setVisibleState(() => new Set(newIds));
-	}, []);
+				if (newSet.has(idToToggle)) newSet.delete(idToToggle);
+				else newSet.add(idToToggle);
+
+				return newSet;
+			});
+		},
+		[field],
+	);
+
+	const showAll = useCallback(
+		(itemsArray?: VisibilityId[] | T[]) => {
+			setVisibleIds((prev) => {
+				const newSet = new Set(prev);
+				const targetItems = itemsArray ?? items;
+
+				targetItems.forEach((item) => {
+					newSet.add(getValue(item, field));
+				});
+
+				return newSet;
+			});
+		},
+		[items, field],
+	);
+
+	const hideAll = useCallback(
+		(itemsArray?: VisibilityId[] | T[]) => {
+			setVisibleIds((prev) => {
+				const newSet = new Set(prev);
+				const targetItems = itemsArray ?? items;
+
+				targetItems.forEach((item) => {
+					newSet.delete(getValue(item, field));
+				});
+
+				return newSet;
+			});
+		},
+		[items, field],
+	);
 
 	const resetVisibility = useCallback(() => {
-		setVisibleState(() => new Set(initialIdsRef.current));
+		setVisibleIds(() => new Set(initialIdsRef.current));
 	}, []);
 
+	const replaceVisibility = useCallback(
+		(newItems: VisibilityId[] | T[]) => {
+			const newItemIds: VisibilityId[] = newItems.map((item) =>
+				getValue(item, field),
+			);
+
+			setVisibleIds(() => new Set(newItemIds));
+		},
+		[field],
+	);
+
+	const visibleItems = useMemo(() => {
+		return items.filter((item) => {
+			const itemId = getValue(item, field);
+
+			return visibleIds.has(itemId);
+		});
+	}, [items, field, visibleIds]);
+
+	const hiddenItems = useMemo(() => {
+		return items.filter((item) => {
+			const itemId = getValue(item, field);
+
+			return !visibleIds.has(itemId);
+		});
+	}, [items, field, visibleIds]);
+
 	return {
-		visibleState,
+		visibleIds: [...visibleIds],
+		visibleItems,
+		hiddenItems,
+		visibleCount: visibleIds.size,
 		isVisible,
-		toggleVisibility,
 		show,
 		hide,
+		toggleVisibility,
 		showAll,
 		hideAll,
 		replaceVisibility,

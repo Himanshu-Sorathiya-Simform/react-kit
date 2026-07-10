@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { getValue } from "../../shared/utils.ts";
 import type { FilterConfig, FilterState } from "./types.ts";
 import { FILTER_STRATEGIES } from "./utils.ts";
@@ -25,7 +25,9 @@ function useFilter<T>(
 	data: T[],
 	initialFilters: FilterState<T> = [],
 ): UseFilterReturn<T> {
-	const [filters, setFilters] = useState<FilterState<T>>(initialFilters);
+	const initialFiltersRef = useRef(initialFilters);
+
+	const [filters, setFilters] = useState(() => initialFilters);
 
 	const filteredItems = useMemo(() => {
 		const processedFilters = filters
@@ -85,8 +87,8 @@ function useFilter<T>(
 	}, []);
 
 	const resetFilters = useCallback(() => {
-		setFilters(initialFilters);
-	}, [initialFilters]);
+		setFilters(initialFiltersRef.current);
+	}, []);
 
 	const replaceFilters = useCallback((filters: FilterConfig<T>[]) => {
 		setFilters(filters);

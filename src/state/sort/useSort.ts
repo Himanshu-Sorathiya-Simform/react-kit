@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { getValue } from "../../shared/utils.ts";
 import type {
 	SortConfig,
@@ -35,7 +35,9 @@ interface UseSortReturn<T> {
 }
 
 function useSort<T>(data: T[], initialSorts: SortState = []): UseSortReturn<T> {
-	const [sorts, setSorts] = useState<SortState>(initialSorts);
+	const initialSortsRef = useRef(initialSorts);
+
+	const [sorts, setSorts] = useState(() => initialSorts);
 
 	const sortedItems = useMemo(() => {
 		const processedSorts = sorts.map(
@@ -162,7 +164,7 @@ function useSort<T>(data: T[], initialSorts: SortState = []): UseSortReturn<T> {
 
 	const clearSorts = useCallback(() => setSorts([]), []);
 
-	const resetSorts = useCallback(() => setSorts(initialSorts), [initialSorts]);
+	const resetSorts = useCallback(() => setSorts(initialSortsRef.current), []);
 
 	const replaceSorts = useCallback((sorts: SortState) => setSorts(sorts), []);
 
