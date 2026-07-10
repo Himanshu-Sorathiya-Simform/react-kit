@@ -1,34 +1,34 @@
 export {
 	type FuzzyHighlighterProps,
 	FuzzyHighlighter,
-} from "./ui/highlight/FuzzyHighlighter.tsx";
-export { type ModalLayoutProps, ModalLayout } from "./ui/modal/Modal.tsx";
+} from "./ui/FuzzyHighlighter/FuzzyHighlighter.tsx";
+export { type ModalLayoutProps, ModalLayout } from "./ui/useModal/ModalLayout.tsx";
 
-export { type UseFilterReturn, useFilter } from "./state/filter/useFilter.ts";
+export { type UseFilterReturn, useFilter } from "./state/useFilter/useFilter.ts";
 export {
 	type UseFuzzySearchFields,
 	type UseFuzzySearchReturn,
 	useFuzzySearch,
-} from "./state/fuzzy-search/useFuzzySearch.ts";
+} from "./state/useFuzzySearch/useFuzzySearch.ts";
 export {
 	type UseGroupingReturn,
 	useGrouping,
-} from "./state/grouping/useGrouping.ts";
-export {
-	type UsePaginationReturn,
-	usePagination,
-} from "./state/pagination/usePagination.ts";
+} from "./state/useGrouping/useGrouping.ts";
 export {
 	type UseMultipleSelectionReturn,
 	useMultipleSelection,
-} from "./state/selection/useMultipleSelection.ts";
+} from "./state/useMultipleSelection/useMultipleSelection.ts";
+export { type UseOrderReturn, useOrder } from "./state/useOrder/useOrder.ts";
+export {
+	type UsePaginationReturn,
+	usePagination,
+} from "./state/usePagination/usePagination.ts";
+export { type UsePinReturn, usePin } from "./state/usePin/usePin.ts";
 export {
 	type UseSingleSelectionReturn,
 	useSingleSelection,
-} from "./state/selection/useSingleSelection.ts";
-export { type UseOrderReturn, useOrder } from "./state/sort/useOrder.ts";
-export { type UsePinReturn, usePin } from "./state/sort/usePin.ts";
-export { type UseSortReturn, useSort } from "./state/sort/useSort.ts";
+} from "./state/useSingleSelection/useSingleSelection.ts";
+export { type UseSortReturn, useSort } from "./state/useSort/useSort.ts";
 
 export {
 	type UseModalActionsReturn,
@@ -37,26 +37,26 @@ export {
 	useModal,
 	useModalActions,
 	useModalState,
-} from "./ui/modal/useModal.ts";
+} from "./ui/useModal/useModal.ts";
 export {
 	type UseVisibilityReturn,
 	useVisibility,
-} from "./ui/visibility/useVisibility.ts";
+} from "./ui/useVisibility/useVisibility.ts";
 
 export {
 	type UseDebounceReturn,
 	useDebounce,
-} from "./performance/debounce/useDebounce.ts";
+} from "./performance/useDebounce/useDebounce.ts";
 export {
 	type UseDebouncedValueReturn,
 	useDebouncedValue,
-} from "./performance/debounce/useDebouncedValue.ts";
+} from "./performance/useDebounce/useDebouncedValue.ts";
 export {
 	type UseThrottleReturn,
 	useThrottle,
-} from "./performance/throttle/useThrottle.ts";
+} from "./performance/useThrottle/useThrottle.ts";
 
-export { type UseKeyReturn, useKey } from "./events/key/useKey.ts";
+export { type UseKeyReturn, useKey } from "./events/useKey/useKey.ts";
 
 export type {
 	BooleanOperator,
@@ -70,14 +70,14 @@ export type {
 	NumberOperator,
 	SelectOperator,
 	TextOperator,
-} from "./state/filter/types.ts";
+} from "./state/useFilter/types.ts";
 export type {
 	FlatIndexedItem,
 	FuzzySearchOptions,
 	IndexedToken,
 	ScoredItem,
-} from "./state/fuzzy-search/types.ts";
-export type { Group } from "./state/grouping/types.ts";
+} from "./state/useFuzzySearch/types.ts";
+export type { Group } from "./state/useGrouping/types.ts";
 export type {
 	BaseSortConfig,
 	BaseSortOptions,
@@ -85,13 +85,13 @@ export type {
 	SortOptionsForType,
 	SortState,
 	SortType,
-} from "./state/sort/types.ts";
+} from "./state/useSort/types.ts";
 
-export type { DebounceOptions } from "./performance/debounce/types.ts";
-export type { ThrottleOptions } from "./performance/throttle/types.ts";
+export type { DebounceOptions } from "./performance/useDebounce/types.ts";
+export type { ThrottleOptions } from "./performance/useThrottle/types.ts";
 
 export type {
 	BaseKeyOptions,
 	KeyEventType,
 	KeyOptions,
-} from "./events/key/types.ts";
+} from "./events/useKey/types.ts";
