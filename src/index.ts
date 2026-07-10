@@ -11,6 +11,10 @@ export {
 	useFuzzySearch,
 } from "./state/fuzzy-search/useFuzzySearch.ts";
 export {
+	type UseGroupingReturn,
+	useGrouping,
+} from "./state/grouping/useGrouping.ts";
+export {
 	type UsePaginationReturn,
 	usePagination,
 } from "./state/pagination/usePagination.ts";
@@ -72,6 +76,7 @@ export type {
 	IndexedToken,
 	ScoredItem,
 } from "./state/fuzzy-search/types.ts";
+export type { Group } from "./state/grouping/types.ts";
 export type {
 	BaseSortConfig,
 	BaseSortOptions,
