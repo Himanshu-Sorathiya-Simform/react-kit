@@ -27,6 +27,7 @@ export {
 	useSingleSelection,
 } from "./state/selection/useSingleSelection.ts";
 export { type UseOrderReturn, useOrder } from "./state/sort/useOrder.ts";
+export { type UsePinReturn, usePin } from "./state/sort/usePin.ts";
 export { type UseSortReturn, useSort } from "./state/sort/useSort.ts";
 
 export {
