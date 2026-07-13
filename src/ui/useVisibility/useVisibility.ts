@@ -15,7 +15,7 @@ interface UseVisibilityReturn<T> {
 	showAll: (itemsArray?: VisibilityId[] | T[]) => void;
 	hideAll: (itemsArray?: VisibilityId[] | T[]) => void;
 	resetVisibility: () => void;
-	replaceVisibility: (newItems: VisibilityId[] | T[]) => void;
+	replaceVisibility: (newVisibleItems: VisibilityId[] | T[]) => void;
 }
 
 function useVisibility<T = unknown>({
@@ -120,8 +120,8 @@ function useVisibility<T = unknown>({
 	}, []);
 
 	const replaceVisibility = useCallback(
-		(newItems: VisibilityId[] | T[]) => {
-			const newItemIds: VisibilityId[] = newItems.map((item) =>
+		(newVisibleItems: VisibilityId[] | T[]) => {
+			const newItemIds: VisibilityId[] = newVisibleItems.map((item) =>
 				getValue(item, field),
 			);
 
