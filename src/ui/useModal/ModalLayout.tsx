@@ -31,6 +31,7 @@ function ModalLayout({
 	const [isClosing, setIsClosing] = useState(false);
 
 	const dialogRef = useRef<HTMLDialogElement | null>(null);
+	const previousFocusRef = useRef<HTMLElement | null>(null);
 
 	const isCurrentModal = id === modalId;
 	const shouldBeOpen = isOpen && isCurrentModal;
@@ -40,8 +41,11 @@ function ModalLayout({
 		if (!dialog) return;
 
 		if (shouldBeOpen && !dialog.open) {
-			setIsClosing(false);
+			if (document.activeElement) {
+				previousFocusRef.current = document.activeElement as HTMLElement;
+			}
 
+			setIsClosing(false);
 			dialog.showModal();
 		} else if (!shouldBeOpen && dialog.open) {
 			setIsClosing(true);
@@ -59,6 +63,11 @@ function ModalLayout({
 			setIsClosing(false);
 
 			if (isCurrentModal) clearModal();
+
+			if (previousFocusRef.current) {
+				previousFocusRef.current.focus();
+				previousFocusRef.current = null;
+			}
 		}
 	};
 
