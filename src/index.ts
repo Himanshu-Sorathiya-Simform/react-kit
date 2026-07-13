@@ -23,13 +23,16 @@ export {
 	type UsePaginationReturn,
 	usePagination,
 } from "./state/usePagination/usePagination.ts";
-export { type UsePinReturn, usePin } from "./state/usePin/usePin.ts";
 export {
 	type UseSingleSelectionReturn,
 	useSingleSelection,
 } from "./state/useSingleSelection/useSingleSelection.ts";
 export { type UseSortReturn, useSort } from "./state/useSort/useSort.ts";
 
+export {
+	type UseExpansionReturn,
+	useExpansion,
+} from "./ui/useExpansion/useExpansion.ts";
 export {
 	type UseModalActionsReturn,
 	type UseModalReturn,
@@ -38,6 +41,7 @@ export {
 	useModalActions,
 	useModalState,
 } from "./ui/useModal/useModal.ts";
+export { type UsePinReturn, usePin } from "./ui/usePin/usePin.ts";
 export {
 	type UseVisibilityReturn,
 	useVisibility,
