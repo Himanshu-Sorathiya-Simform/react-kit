@@ -22,6 +22,9 @@ In short: stop writing the same `reduce` function in every component. Configure 
 ## Import Syntax
 
 ```tsx
+// Preferred
+import { useGrouping, type UseGroupingReturn, type Group } from "@himanshu-sorathiya/react-kit/state";
+// Or
 import { useGrouping, type UseGroupingReturn, type Group } from "@himanshu-sorathiya/react-kit";
 ```
 
@@ -32,7 +35,7 @@ import { useGrouping, type UseGroupingReturn, type Group } from "@himanshu-sorat
 Group a flat array of user objects by a simple top-level field like `"role"`:
 
 ```tsx
-import { useGrouping } from "@himanshu-sorathiya/react-kit";
+import { useGrouping } from "@himanshu-sorathiya/react-kit/state";
 
 interface User {
 	id: number;
@@ -119,7 +122,7 @@ interface Group<T> {
 Switch grouping between a flat key and a deeply nested key at runtime using `changeGroupBy`:
 
 ```tsx
-import { useGrouping } from "@himanshu-sorathiya/react-kit";
+import { useGrouping } from "@himanshu-sorathiya/react-kit/state";
 
 interface Product {
 	id: number;
@@ -166,7 +169,7 @@ function ProductBoard() {
 ### Clearing & Resetting Groupings
 
 ```tsx
-import { useGrouping } from "@himanshu-sorathiya/react-kit";
+import { useGrouping } from "@himanshu-sorathiya/react-kit/state";
 
 interface Task {
 	id: number;

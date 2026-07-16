@@ -16,13 +16,16 @@ Managing single-selection state manually with `useState` seems trivial at first,
 ## Import
 
 ```tsx
+// Preferred
+import { useSingleSelection, type UseSingleSelectionReturn } from "@himanshu-sorathiya/react-kit/state";
+// Or
 import { useSingleSelection, type UseSingleSelectionReturn } from "@himanshu-sorathiya/react-kit";
 ```
 
 ## Basic Usage
 
 ```tsx
-import { useSingleSelection } from "@himanshu-sorathiya/react-kit";
+import { useSingleSelection } from "@himanshu-sorathiya/react-kit/state";
 
 const items = [
 	{ id: 1, label: "Item One" },
@@ -79,7 +82,7 @@ function ItemList() {
 Use `isSelected(id)` to dynamically style the active item — for example, giving it a distinct background color.
 
 ```tsx
-import { useSingleSelection } from "@himanshu-sorathiya/react-kit";
+import { useSingleSelection } from "@himanshu-sorathiya/react-kit/state";
 
 const colors = [
 	{ id: "red", hex: "#ef4444" },
@@ -114,7 +117,7 @@ function ColorPicker() {
 Use `toggle` to let users click an item to select it, and click it again to deselect it.
 
 ```tsx
-import { useSingleSelection } from "@himanshu-sorathiya/react-kit";
+import { useSingleSelection } from "@himanshu-sorathiya/react-kit/state";
 
 const rows = [
 	{ id: 101, name: "Row A" },

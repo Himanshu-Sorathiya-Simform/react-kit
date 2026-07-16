@@ -13,11 +13,27 @@
 			"types": "./dist/index.d.ts",
 			"import": "./dist/index.js"
 		},
+		"./ui": {
+			"types": "./dist/ui.d.ts",
+			"import": "./dist/ui.js"
+		},
+		"./state": {
+			"types": "./dist/state.d.ts",
+			"import": "./dist/state.js"
+		},
+		"./performance": {
+			"types": "./dist/performance.d.ts",
+			"import": "./dist/performance.js"
+		},
+		"./events": {
+			"types": "./dist/events.d.ts",
+			"import": "./dist/events.js"
+		},
 		"./styles.css": "./dist/index.css"
 	},
 	"scripts": {
 		"dev": "vite",
-		"build": "vite build && dts-bundle-generator --project tsconfig.app.json -o dist/index.d.ts src/index.ts",
+		"build": "vite build && dts-bundle-generator --project tsconfig.app.json -o dist/index.d.ts src/index.ts && dts-bundle-generator --project tsconfig.app.json -o dist/ui.d.ts src/ui/index.ts && dts-bundle-generator --project tsconfig.app.json -o dist/state.d.ts src/state/index.ts && dts-bundle-generator --project tsconfig.app.json -o dist/performance.d.ts src/performance/index.ts && dts-bundle-generator --project tsconfig.app.json -o dist/events.d.ts src/events/index.ts",
 		"lint": "eslint .",
 		"preview": "vite preview",
 		"format": "prettier . --write"

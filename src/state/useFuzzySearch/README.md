@@ -18,13 +18,17 @@ Together, these mean you get relevance-ranked, typo-tolerant search out of the b
 ## Import Syntax
 
 ```tsx
+// Preferred
+import { useFuzzySearch } from "@himanshu-sorathiya/react-kit/state";
+import { FuzzyHighlighter } from "@himanshu-sorathiya/react-kit/ui";
+// Or
 import { useFuzzySearch, FuzzyHighlighter } from "@himanshu-sorathiya/react-kit";
 ```
 
 ## Basic Usage
 
 ```tsx
-import { useFuzzySearch } from "@himanshu-sorathiya/react-kit";
+import { useFuzzySearch } from "@himanshu-sorathiya/react-kit/state";
 
 interface Fruit {
 	id: number;
@@ -94,7 +98,8 @@ This example demonstrates the hook doing real work: searching across three diffe
 
 ```tsx
 import { useState } from "react";
-import { useFuzzySearch, FuzzyHighlighter } from "@himanshu-sorathiya/react-kit";
+import { useFuzzySearch } from "@himanshu-sorathiya/react-kit/state";
+import { FuzzyHighlighter } from "@himanshu-sorathiya/react-kit/ui";
 
 interface Article {
 	id: string;

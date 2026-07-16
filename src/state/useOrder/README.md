@@ -20,6 +20,9 @@ Every mutating method is **index-safe by design**: invalid types, negative numbe
 ## Import Syntax
 
 ```tsx
+// Preferred
+import { useOrder, type UseOrderReturn } from "@himanshu-sorathiya/react-kit/state";
+// Or
 import { useOrder, type UseOrderReturn } from "@himanshu-sorathiya/react-kit";
 ```
 
@@ -28,7 +31,7 @@ import { useOrder, type UseOrderReturn } from "@himanshu-sorathiya/react-kit";
 A minimal list with "Move Up" and "Move Down" controls, using `canMoveUp` / `canMoveDown` to disable buttons at the boundaries:
 
 ```tsx
-import { useOrder } from "@himanshu-sorathiya/react-kit";
+import { useOrder } from "@himanshu-sorathiya/react-kit/state";
 
 function TodoList() {
 	const { orderedItems, moveUp, moveDown, canMoveUp, canMoveDown } = useOrder([
@@ -101,7 +104,7 @@ swap(0, 3):  [D, B, C, A, E]   // only A and D trade places; B and C are untouch
 Use `moveToTop` (or `moveToBottom`) to let users instantly promote or demote an item without repeated clicks:
 
 ```tsx
-import { useOrder } from "@himanshu-sorathiya/react-kit";
+import { useOrder } from "@himanshu-sorathiya/react-kit/state";
 
 function PriorityQueue() {
 	const { orderedItems, moveToTop, moveToBottom } = useOrder([

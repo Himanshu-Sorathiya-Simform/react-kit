@@ -18,6 +18,9 @@ In short: less boilerplate, fewer footguns, and a single consistent API whether 
 ## Import Syntax
 
 ```tsx
+// Preferred
+import { useVisibility, type UseVisibilityReturn } from "@himanshu-sorathiya/react-kit/ui";
+// Or
 import { useVisibility, type UseVisibilityReturn } from "@himanshu-sorathiya/react-kit";
 ```
 
@@ -28,7 +31,7 @@ import { useVisibility, type UseVisibilityReturn } from "@himanshu-sorathiya/rea
 A minimal example using a primitive array of tags. Since the items are primitives, `field` is not required — the values themselves act as the identifiers.
 
 ```tsx
-import { useVisibility } from "@himanshu-sorathiya/react-kit";
+import { useVisibility } from "@himanshu-sorathiya/react-kit/ui";
 
 const tags = ["react", "typescript", "hooks", "vite"];
 
@@ -92,7 +95,7 @@ function TagList() {
 When your data is an array of objects, `field` is required. It supports dot-notation, so you can point directly at a nested identifier without flattening your data first — perfect for tracking visibility of specific rows in a list or table.
 
 ```tsx
-import { useVisibility } from "@himanshu-sorathiya/react-kit";
+import { useVisibility } from "@himanshu-sorathiya/react-kit/ui";
 
 interface Row {
   user: { id: string; name: string };
@@ -134,7 +137,7 @@ function UserTable() {
 `showAll` and `hideAll` make "Select All" / "Deselect All" controls trivial — no manual iteration required.
 
 ```tsx
-import { useVisibility } from "@himanshu-sorathiya/react-kit";
+import { useVisibility } from "@himanshu-sorathiya/react-kit/ui";
 
 interface Product {
   id: number;

@@ -24,6 +24,9 @@ The result: declarative, predictable keyboard shortcuts with a single hook call,
 ## Import Syntax
 
 ```tsx
+// Preferred
+import { useKey, type UseKeyReturn, type KeyOptions } from "@himanshu-sorathiya/react-kit/events";
+// Or
 import { useKey, type UseKeyReturn, type KeyOptions } from "@himanshu-sorathiya/react-kit";
 ```
 
@@ -34,7 +37,7 @@ import { useKey, type UseKeyReturn, type KeyOptions } from "@himanshu-sorathiya/
 A minimal example: closing a modal or dropdown when the user presses `Escape`.
 
 ```tsx
-import { useKey } from "@himanshu-sorathiya/react-kit";
+import { useKey } from "@himanshu-sorathiya/react-kit/events";
 
 function Modal({ onClose }: { onClose: () => void }) {
 	useKey("Escape", onClose);
@@ -84,7 +87,7 @@ That's it — no manual `useEffect`, no manual cleanup, no stale closure concern
 Open a global command palette with `Ctrl + K` (or `Cmd + K` on macOS via `metaKey`):
 
 ```tsx
-import { useKey } from "@himanshu-sorathiya/react-kit";
+import { useKey } from "@himanshu-sorathiya/react-kit/events";
 
 function CommandPaletteTrigger({ onOpen }: { onOpen: () => void }) {
 	useKey("k", onOpen, { ctrlKey: true, metaKey: true });
@@ -100,7 +103,7 @@ function CommandPaletteTrigger({ onOpen }: { onOpen: () => void }) {
 Toggle playback with the spacebar, without the handler firing dozens of times while the key is held:
 
 ```tsx
-import { useKey } from "@himanshu-sorathiya/react-kit";
+import { useKey } from "@himanshu-sorathiya/react-kit/events";
 
 function VideoPlayer({ onTogglePlay }: { onTogglePlay: () => void }) {
 	useKey(" ", onTogglePlay, { preventRepeat: true });
@@ -115,7 +118,7 @@ Bind a hotkey so it only fires when a specific element — like a canvas or cust
 
 ```tsx
 import { useRef } from "react";
-import { useKey } from "@himanshu-sorathiya/react-kit";
+import { useKey } from "@himanshu-sorathiya/react-kit/events";
 
 function CanvasEditor({ onDelete }: { onDelete: () => void }) {
 	const canvasRef = useRef<HTMLDivElement>(null);
@@ -131,7 +134,7 @@ function CanvasEditor({ onDelete }: { onDelete: () => void }) {
 By default, `ignoreWhenFocusedInInputs` prevents the handler from firing while the user is typing in an `<input>`, `<textarea>`, or `contenteditable` element — so a global shortcut like `"s"` for "save" won't hijack normal typing:
 
 ```tsx
-import { useKey } from "@himanshu-sorathiya/react-kit";
+import { useKey } from "@himanshu-sorathiya/react-kit/events";
 
 function SaveShortcut({ onSave }: { onSave: () => void }) {
 	// Won't fire while typing in a text field, by default

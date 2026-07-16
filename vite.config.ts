@@ -7,15 +7,26 @@ export default defineConfig({
 	plugins: [react()],
 	build: {
 		lib: {
-			entry: resolve(__dirname, "src/index.ts"),
+			entry: {
+				index: resolve(__dirname, "src/index.ts"),
+				ui: resolve(__dirname, "src/ui/index.ts"),
+				state: resolve(__dirname, "src/state/index.ts"),
+				performance: resolve(__dirname, "src/performance/index.ts"),
+				events: resolve(__dirname, "src/events/index.ts"),
+			},
 			name: "HimanshuSorathiyaReactKit",
 			formats: ["es"],
-			fileName: "index",
 		},
 		rollupOptions: {
 			external: [
-				...Object.keys(pkg.dependencies || {}),
-				...Object.keys(pkg.peerDependencies || {}),
+				...Object.keys(
+					(pkg as { dependencies?: Record<string, string> }).dependencies
+						|| {},
+				),
+				...Object.keys(
+					(pkg as { peerDependencies?: Record<string, string> })
+						.peerDependencies || {},
+				),
 				"react",
 				"react-dom",
 				"react/jsx-runtime",

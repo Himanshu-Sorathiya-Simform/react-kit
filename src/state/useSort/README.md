@@ -19,6 +19,9 @@ It's a pure state + memoized-derivation hook — no DOM assumptions, no external
 ## Import Syntax
 
 ```tsx
+// Preferred
+import { useSort, type UseSortReturn, type SortConfig } from "@himanshu-sorathiya/react-kit/state";
+// Or
 import { useSort, type UseSortReturn, type SortConfig } from "@himanshu-sorathiya/react-kit";
 ```
 
@@ -27,7 +30,7 @@ import { useSort, type UseSortReturn, type SortConfig } from "@himanshu-sorathiy
 A minimal example: a table header that cycles a single column through ascending, descending, and unsorted.
 
 ```tsx
-import { useSort } from "@himanshu-sorathiya/react-kit";
+import { useSort } from "@himanshu-sorathiya/react-kit/state";
 
 interface Product {
 	id: string;
@@ -107,7 +110,7 @@ function ProductTable({ products }: { products: Product[] }) {
 Pass `multi: true` to `toggleSort` to build a priority stack instead of replacing the active sort. `getSortIndex` returns each column's priority position for display.
 
 ```tsx
-import { useSort } from "@himanshu-sorathiya/react-kit";
+import { useSort } from "@himanshu-sorathiya/react-kit/state";
 
 interface Contact {
 	id: string;
@@ -148,7 +151,7 @@ function ContactList({ contacts }: { contacts: Contact[] }) {
 Use `type: "custom"` when your sort logic doesn't map to a built-in type — for example, sorting by a fixed priority-label order rather than alphabetically.
 
 ```tsx
-import { useSort } from "@himanshu-sorathiya/react-kit";
+import { useSort } from "@himanshu-sorathiya/react-kit/state";
 
 interface Task {
 	id: string;

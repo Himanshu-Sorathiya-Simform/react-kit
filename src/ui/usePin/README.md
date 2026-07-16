@@ -23,6 +23,9 @@ In short: less state-shuffling code, fewer edge-case bugs, and a consistent ment
 ## Import Syntax
 
 ```tsx
+// Preferred
+import { usePin, type UsePinReturn } from "@himanshu-sorathiya/react-kit/ui";
+// Or
 import { usePin, type UsePinReturn } from "@himanshu-sorathiya/react-kit";
 ```
 
@@ -33,7 +36,7 @@ import { usePin, type UsePinReturn } from "@himanshu-sorathiya/react-kit";
 The simplest use case: pinning a primitive array (e.g., string tags). Because the items *are* their own IDs, the `field` option is not required.
 
 ```tsx
-import { usePin } from "@himanshu-sorathiya/react-kit";
+import { usePin } from "@himanshu-sorathiya/react-kit/ui";
 
 const tags = ["react", "typescript", "hooks", "vite", "testing"];
 
@@ -99,7 +102,7 @@ function TagList() {
 Cap the number of pinned dashboard widgets at 3, and disable further pinning once the limit is hit.
 
 ```tsx
-import { usePin } from "@himanshu-sorathiya/react-kit";
+import { usePin } from "@himanshu-sorathiya/react-kit/ui";
 
 interface Widget {
 	metadata: { id: string };
@@ -146,7 +149,7 @@ function WidgetBoard() {
 Use `pinMultiple` to pin several items in one go, or `replacePins` to overwrite the pinned set entirely. If the replacement array exceeds `maxPins`, it is automatically truncated via `.slice(0, maxPins)` — no manual clamping needed.
 
 ```tsx
-import { usePin } from "@himanshu-sorathiya/react-kit";
+import { usePin } from "@himanshu-sorathiya/react-kit/ui";
 
 interface Contact {
 	id: number;

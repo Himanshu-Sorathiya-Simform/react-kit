@@ -17,13 +17,16 @@ The result: you describe *what* page you want to be on, and the hook guarantees 
 ## Import Syntax
 
 ```tsx
+// Preferred
+import { usePagination, type UsePaginationReturn } from "@himanshu-sorathiya/react-kit/state";
+// Or
 import { usePagination, type UsePaginationReturn } from "@himanshu-sorathiya/react-kit";
 ```
 
 ## Basic Usage
 
 ```tsx
-import { usePagination } from "@himanshu-sorathiya/react-kit";
+import { usePagination } from "@himanshu-sorathiya/react-kit/state";
 
 interface Product {
 	id: number;
@@ -101,7 +104,7 @@ A page-size selector combined with a "jump to page" input, both wired directly i
 
 ```tsx
 import { useState } from "react";
-import { usePagination } from "@himanshu-sorathiya/react-kit";
+import { usePagination } from "@himanshu-sorathiya/react-kit/state";
 
 function DataTableControls({ data }: { data: string[] }) {
 	const {
@@ -152,7 +155,7 @@ function DataTableControls({ data }: { data: string[] }) {
 Use `canPrevious` and `canNext` to keep your navigation buttons honest — no manual index comparisons required:
 
 ```tsx
-import { usePagination } from "@himanshu-sorathiya/react-kit";
+import { usePagination } from "@himanshu-sorathiya/react-kit/state";
 
 function BoundaryAwareControls({ data }: { data: number[] }) {
 	const { canPrevious, canNext, previousPage, nextPage, goToFirstPage, goToLastPage } =

@@ -16,6 +16,9 @@ Expansion state looks trivial until you actually build it. You start with a `str
 ## Import Syntax
 
 ```tsx
+// Preferred
+import { useExpansion, type UseExpansionReturn } from "@himanshu-sorathiya/react-kit/ui";
+// Or
 import { useExpansion, type UseExpansionReturn } from "@himanshu-sorathiya/react-kit";
 ```
 
@@ -24,7 +27,7 @@ import { useExpansion, type UseExpansionReturn } from "@himanshu-sorathiya/react
 The simplest way to use `useExpansion` is in **ID-only mode** — no `items` array required. This is ideal for toggling independent UI sections that don't map to a data collection.
 
 ```tsx
-import { useExpansion } from "@himanshu-sorathiya/react-kit";
+import { useExpansion } from "@himanshu-sorathiya/react-kit/ui";
 
 function FaqAccordion() {
 	const { isExpanded, toggle } = useExpansion();
@@ -86,7 +89,7 @@ Every argument typed `itemOrId: ExpansionId | T` accepts either a raw ID (`strin
 When working with a data collection, pass `items` alongside `field` so the hook can resolve IDs from your objects automatically. Combine this with `multiple: true` to build tree views, expandable table rows, or multi-panel layouts where several entries can be open at once.
 
 ```tsx
-import { useExpansion } from "@himanshu-sorathiya/react-kit";
+import { useExpansion } from "@himanshu-sorathiya/react-kit/ui";
 
 interface Order {
 	id: string;

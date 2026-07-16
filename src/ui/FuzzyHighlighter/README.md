@@ -15,13 +15,16 @@ A few things make it a strong fit for that role:
 ## Import Syntax
 
 ```tsx
+// Preferred
+import { FuzzyHighlighter, type FuzzyHighlighterProps } from "@himanshu-sorathiya/react-kit/ui";
+// Or
 import { FuzzyHighlighter, type FuzzyHighlighterProps } from "@himanshu-sorathiya/react-kit";
 ```
 
 ## Basic Usage
 
 ```tsx
-import { FuzzyHighlighter } from "@himanshu-sorathiya/react-kit";
+import { FuzzyHighlighter } from "@himanshu-sorathiya/react-kit/ui";
 
 function SearchResultPreview(): React.JSX.Element {
 	return (
@@ -55,7 +58,7 @@ If `text` or `query` is empty (after trimming), or `query` contains no usable to
 ### Custom Styling & Acronym Matching
 
 ```tsx
-import { FuzzyHighlighter } from "@himanshu-sorathiya/react-kit";
+import { FuzzyHighlighter } from "@himanshu-sorathiya/react-kit/ui";
 
 function CityBadge(): React.JSX.Element {
 	return (

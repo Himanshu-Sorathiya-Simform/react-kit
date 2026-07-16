@@ -22,6 +22,12 @@ In short: you get a robust, reusable selection engine instead of a bespoke one y
 ## Import Syntax
 
 ```tsx
+// Preferred
+import {
+	useMultipleSelection,
+	type UseMultipleSelectionReturn,
+} from "@himanshu-sorathiya/react-kit/state";
+// Or
 import {
 	useMultipleSelection,
 	type UseMultipleSelectionReturn,
@@ -33,7 +39,7 @@ import {
 ## Basic Usage
 
 ```tsx
-import { useMultipleSelection } from "@himanshu-sorathiya/react-kit";
+import { useMultipleSelection } from "@himanshu-sorathiya/react-kit/state";
 
 interface Task {
 	id: string;
@@ -114,7 +120,7 @@ function TaskList() {
 ### Bulk Selection & Inversion
 
 ```tsx
-import { useMultipleSelection } from "@himanshu-sorathiya/react-kit";
+import { useMultipleSelection } from "@himanshu-sorathiya/react-kit/state";
 
 interface Row {
 	id: string;
@@ -157,7 +163,7 @@ function DataTable({ rows }: { rows: Row[] }) {
 Useful when an external event (e.g. a search filter or a permissions change) should prune the current selection down to only the IDs that are still valid — without wiping the whole selection.
 
 ```tsx
-import { useMultipleSelection } from "@himanshu-sorathiya/react-kit";
+import { useMultipleSelection } from "@himanshu-sorathiya/react-kit/state";
 
 interface Product {
 	id: string;

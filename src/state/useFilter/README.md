@@ -18,6 +18,13 @@ Key advantages:
 ## Import Syntax
 
 ```tsx
+// Preferred
+import {
+	useFilter,
+	type UseFilterReturn,
+	type FilterConfig,
+} from "@himanshu-sorathiya/react-kit/state";
+// Or
 import {
 	useFilter,
 	type UseFilterReturn,
@@ -28,7 +35,7 @@ import {
 ## Basic Usage
 
 ```tsx
-import { useFilter, type FilterConfig } from "@himanshu-sorathiya/react-kit";
+import { useFilter, type FilterConfig } from "@himanshu-sorathiya/react-kit/state";
 
 interface User {
 	id: string;
@@ -113,7 +120,7 @@ For `text` filters, an optional `caseSensitive` flag controls whether string com
 Wire `updateFilterValue` up to an input's `onChange` handler to drive a live search box without recreating the filter's `id`, `type`, or `operator` on every keystroke.
 
 ```tsx
-import { useFilter, type FilterConfig } from "@himanshu-sorathiya/react-kit";
+import { useFilter, type FilterConfig } from "@himanshu-sorathiya/react-kit/state";
 
 interface Product {
 	id: string;
@@ -155,7 +162,7 @@ function ProductSearch({ products }: { products: Product[] }) {
 Use `type: "custom"` when your filtering logic doesn't map cleanly to a built-in strategy. The `compare` function receives the resolved item value, the raw filter `value`, and the full item, so it can reach beyond a single field.
 
 ```tsx
-import { useFilter, type FilterConfig } from "@himanshu-sorathiya/react-kit";
+import { useFilter, type FilterConfig } from "@himanshu-sorathiya/react-kit/state";
 
 interface Order {
 	id: string;
