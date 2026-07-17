@@ -1,6 +1,6 @@
 # Debounce Hook Suite
 
-A fully type-safe, strictly client-side debouncing ecosystem for React, built around a single **master execution engine** — `useDebounce` — and three specialized **reactive wrappers** that adapt that engine to callbacks, values, and component state: `useDebouncedCallback`, `useDebouncedValue`, and `useDebouncedState`.
+A fully type-safe, strictly client-side debouncing ecosystem for React, built around a single **master execution engine** (`useDebounce`) and three specialized **reactive wrappers** (`useDebouncedCallback`, `useDebouncedValue`, `useDebouncedState`) that adapt it to callbacks, values, and state.
 
 One engine. Three shapes. Zero stale closures.
 
@@ -19,14 +19,30 @@ The result is a suite that is predictable under the exact conditions where hand-
 
 ## Import Syntax
 
-All hooks and shared types are exported from a single entry point:
-
 ```tsx
+// Preferred
 import {
 	useDebounce,
 	useDebouncedCallback,
 	useDebouncedValue,
 	useDebouncedState,
+	type UseDebounceReturn,
+	type UseDebouncedCallbackReturn,
+	type UseDebouncedValueReturn,
+	type UseDebouncedStateReturn,
+	type DebounceOptions,
+} from "@himanshu-sorathiya/react-kit/performance";
+// Or
+import {
+	useDebounce,
+	useDebouncedCallback,
+	useDebouncedValue,
+	useDebouncedState,
+	type UseDebounceReturn,
+	type UseDebouncedCallbackReturn,
+	type UseDebouncedValueReturn,
+	type UseDebouncedStateReturn,
+	type DebounceOptions,
 } from "@himanshu-sorathiya/react-kit";
 ```
 

@@ -1,6 +1,6 @@
 # Throttle Hook Suite
 
-A strictly client-side, fully type-safe family of React hooks for throttling — built around a single **master execution engine** (`useThrottle`) and three specialized **reactive wrappers** (`useThrottledCallback`, `useThrottledValue`, `useThrottledState`) that adapt it to callbacks, values, and state.
+A fully type-safe, strictly client-side throttling ecosystem for React, built around a single **master execution engine** (`useThrottle`) and three specialized **reactive wrappers** (`useThrottledCallback`, `useThrottledValue`, `useThrottledState`) that adapt it to callbacks, values, and state.
 
 Every hook in the suite shares the exact same timing engine underneath, so behavior is 100% consistent no matter which layer of your UI you're throttling — from raw event handlers to derived state.
 
@@ -20,11 +20,29 @@ Most throttle implementations bolt rate-limiting logic directly onto whatever th
 ## Import Syntax
 
 ```tsx
+// Preferred
 import {
 	useThrottle,
 	useThrottledCallback,
 	useThrottledValue,
 	useThrottledState,
+	type UseThrottleReturn,
+	type UseThrottledCallbackReturn,
+	type UseThrottledValueReturn,
+	type UseThrottledStateReturn,
+	type ThrottleOptions,
+} from "@himanshu-sorathiya/react-kit/performance";
+// Or
+import {
+	useThrottle,
+	useThrottledCallback,
+	useThrottledValue,
+	useThrottledState,
+	type UseThrottleReturn,
+	type UseThrottledCallbackReturn,
+	type UseThrottledValueReturn,
+	type UseThrottledStateReturn,
+	type ThrottleOptions,
 } from "@himanshu-sorathiya/react-kit";
 ```
 

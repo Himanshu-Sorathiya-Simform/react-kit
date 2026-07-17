@@ -1,6 +1,6 @@
 # Rate Limit Hook Suite
 
-A strictly client-side, fully type-safe rate-limiting toolkit for React, built around a single **master execution engine** (`useRateLimit`) and a **specialized reactive callback wrapper** (`useRateLimitedCallback`). Together they give you drop-in protection against spam clicks, chat flooding, API abuse, and any other action that needs a hard or soft ceiling on frequency.
+A fully type-safe, strictly client-side rate-limiting ecosystem for React, built around a single **master execution engine** (`useRateLimit`) and a specialized **reactive wrapper** (`useRateLimitedCallback`) that adapts it to callbacks. Together they give you drop-in protection against spam clicks, chat flooding, API abuse, and any other action that needs a hard or soft ceiling on frequency.
 
 ## Motivation (Why this suite?)
 
@@ -19,7 +19,22 @@ The result is a rate-limiting layer that behaves exactly like you'd expect, with
 ## Import Syntax
 
 ```tsx
-import { useRateLimit, useRateLimitedCallback } from "@himanshu-sorathiya/react-kit";
+// Preferred
+import {
+	useRateLimit,
+	useRateLimitedCallback,
+	type UseRateLimitReturn,
+	type UseRateLimitedCallbackReturn,
+	type RateLimitOptions,
+} from "@himanshu-sorathiya/react-kit/performance";
+// Or
+import {
+	useRateLimit,
+	useRateLimitedCallback,
+	type UseRateLimitReturn,
+	type UseRateLimitedCallbackReturn,
+	type RateLimitOptions,
+} from "@himanshu-sorathiya/react-kit";
 ```
 
 ## Master Hook Deep Dive (`useRateLimit`)
