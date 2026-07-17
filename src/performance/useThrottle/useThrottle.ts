@@ -1,58 +1,61 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { ThrottleOptions } from "./types.ts";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
-interface UseThrottleReturn<Args extends any[]> {
-	throttledFunc: (...args: Args) => void;
+interface UseThrottleReturn {
+	run: <Args extends unknown[]>(
+		func: (...args: Args) => void,
+		...args: Args
+	) => void;
 	cancel: () => void;
 	flush: () => void;
 	isPending: boolean;
 }
 
-function useThrottle<Args extends any[]>(
-	func: (...args: Args) => void,
+function useThrottle(
 	delay: number,
 	options: ThrottleOptions = {},
-): UseThrottleReturn<Args> {
+): UseThrottleReturn {
 	const [isPending, setIsPending] = useState(false);
 
-	const leading = options.leading ?? true;
-	const trailing = options.trailing ?? true;
+	let leading = options.leading ?? true;
+	let trailing = options.trailing ?? true;
 
-	const funcRef = useRef(func);
-	const timerIdRef = useRef<number | null>(null);
+	if (leading === false && trailing === false) {
+		leading = true;
+		trailing = true;
+	}
+
+	const activeFuncRef = useRef<((...args: unknown[]) => void) | null>(null);
+	const lastArgsRef = useRef<unknown[] | null>(null);
+
+	const timerIdRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 	const lastInvokeTimeRef = useRef(-1);
-	const lastArgsRef = useRef<Args | null>(null);
-
-	useEffect(() => {
-		funcRef.current = func;
-	}, [func]);
 
 	const cancel = useCallback(() => {
 		if (timerIdRef.current) {
 			clearTimeout(timerIdRef.current);
-
 			timerIdRef.current = null;
 		}
 
 		lastInvokeTimeRef.current = -1;
 		lastArgsRef.current = null;
+		activeFuncRef.current = null;
 
 		setIsPending(false);
 	}, []);
 
 	const flush = useCallback(() => {
-		if (lastArgsRef.current) {
+		if (lastArgsRef.current && activeFuncRef.current) {
 			if (timerIdRef.current) {
 				clearTimeout(timerIdRef.current);
-
 				timerIdRef.current = null;
 			}
 
-			funcRef.current(...lastArgsRef.current);
+			activeFuncRef.current(...lastArgsRef.current);
 			lastInvokeTimeRef.current = leading ? Date.now() : -1;
+
 			lastArgsRef.current = null;
+			activeFuncRef.current = null;
 
 			setIsPending(false);
 		}
@@ -64,12 +67,13 @@ function useThrottle<Args extends any[]>(
 		};
 	}, [cancel]);
 
-	const throttledFunc = useCallback(
-		(...args: Args) => {
+	const run = useCallback(
+		<Args extends unknown[]>(func: (...args: Args) => void, ...args: Args) => {
 			setIsPending(true);
 
 			const now = Date.now();
 			lastArgsRef.current = args;
+			activeFuncRef.current = func as (...args: unknown[]) => void;
 
 			if (
 				lastInvokeTimeRef.current === -1 ?
@@ -81,7 +85,7 @@ function useThrottle<Args extends any[]>(
 					timerIdRef.current = null;
 				}
 
-				funcRef.current(...args);
+				activeFuncRef.current(...args);
 
 				lastInvokeTimeRef.current = now;
 				lastArgsRef.current = null;
@@ -95,15 +99,15 @@ function useThrottle<Args extends any[]>(
 				const remainingTime = delay - elapsed;
 
 				timerIdRef.current = setTimeout(() => {
-					if (trailing && lastArgsRef.current) {
-						funcRef.current(...lastArgsRef.current);
-
+					if (trailing && lastArgsRef.current && activeFuncRef.current) {
+						activeFuncRef.current(...lastArgsRef.current);
 						lastInvokeTimeRef.current = leading ? Date.now() : -1;
 					} else {
 						lastInvokeTimeRef.current = -1;
 					}
 
 					lastArgsRef.current = null;
+					activeFuncRef.current = null;
 					timerIdRef.current = null;
 
 					setIsPending(false);
@@ -113,7 +117,7 @@ function useThrottle<Args extends any[]>(
 		[delay, leading, trailing],
 	);
 
-	return { throttledFunc, cancel, flush, isPending };
+	return { run, cancel, flush, isPending };
 }
 
-export { type ThrottleOptions, type UseThrottleReturn, useThrottle };
+export { type UseThrottleReturn, useThrottle };

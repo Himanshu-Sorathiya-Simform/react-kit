@@ -14,7 +14,7 @@ type UseDebouncedStateReturn<T> = [
 ];
 
 function useDebouncedState<T>(
-	initialValue: T,
+	initialValue: T | (() => T),
 	delay: number,
 	options: DebounceOptions = {},
 ): UseDebouncedStateReturn<T> {
