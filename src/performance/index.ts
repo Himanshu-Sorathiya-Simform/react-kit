@@ -11,6 +11,11 @@ export {
 	type UseDebouncedValueReturn,
 	useDebouncedValue,
 } from "./useDebounce/useDebouncedValue";
+export { type UseRateLimitReturn, useRateLimit } from "./useRateLimit/useRateLimit";
+export {
+	type UseRateLimitedCallbackReturn,
+	useRateLimitedCallback,
+} from "./useRateLimit/useRateLimitedCallback";
 export { type UseThrottleReturn, useThrottle } from "./useThrottle/useThrottle";
 export {
 	type UseThrottledCallbackReturn,
@@ -26,4 +31,5 @@ export {
 } from "./useThrottle/useThrottledValue";
 
 export type { DebounceOptions } from "./useDebounce/types";
+export type { RateLimitOptions } from "./useRateLimit/types";
 export type { ThrottleOptions } from "./useThrottle/types";

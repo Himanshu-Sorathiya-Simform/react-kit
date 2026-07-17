@@ -1,4 +1,4 @@
-# 🕰️ Debounce Hook Suite
+# Debounce Hook Suite
 
 A fully type-safe, strictly client-side debouncing ecosystem for React, built around a single **master execution engine** — `useDebounce` — and three specialized **reactive wrappers** that adapt that engine to callbacks, values, and component state: `useDebouncedCallback`, `useDebouncedValue`, and `useDebouncedState`.
 
