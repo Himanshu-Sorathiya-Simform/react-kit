@@ -14,13 +14,20 @@ interface UseGroupingReturn<T> {
 	getGroupItems: (groupKey: string) => T[];
 }
 
-function useGrouping<T = unknown>({
-	items,
-	initialGroupBy,
-}: {
-	items: T[];
-	initialGroupBy?: string;
-}): UseGroupingReturn<T> {
+function useGrouping<T = unknown>(
+	options: {
+		items?: T[];
+		initialGroupBy?: string;
+	} = {},
+): UseGroupingReturn<T> {
+	const safeOptions = options || {};
+
+	const items = useMemo(
+		() => (Array.isArray(safeOptions.items) ? safeOptions.items : []),
+		[safeOptions.items],
+	);
+	const initialGroupBy = safeOptions.initialGroupBy;
+
 	const [activeGroupBy, setActiveGroupBy] = useState(initialGroupBy);
 
 	const groupedRecord = useMemo(() => {

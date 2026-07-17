@@ -34,10 +34,16 @@ interface UseSortReturn<T> {
 	getSortIndex: (id: string) => number | undefined;
 }
 
-function useSort<T>(data: T[], initialSorts: SortState = []): UseSortReturn<T> {
-	const initialSortsRef = useRef(initialSorts);
+function useSort<T>(data: T[] = [], initialSorts: SortState = []): UseSortReturn<T> {
+	const safeData = useMemo(() => (Array.isArray(data) ? data : []), [data]);
+	const safeInitialSorts = useMemo(
+		() => (Array.isArray(initialSorts) ? initialSorts : []),
+		[initialSorts],
+	);
 
-	const [sorts, setSorts] = useState(() => initialSorts);
+	const initialSortsRef = useRef(safeInitialSorts);
+
+	const [sorts, setSorts] = useState(() => safeInitialSorts);
 
 	const sortedItems = useMemo(() => {
 		const processedSorts = sorts.map(
@@ -47,7 +53,7 @@ function useSort<T>(data: T[], initialSorts: SortState = []): UseSortReturn<T> {
 			}),
 		);
 
-		return [...data].sort((itemA, itemB) => {
+		return [...safeData].sort((itemA, itemB) => {
 			for (const sortConfig of processedSorts) {
 				const {
 					type,
@@ -136,7 +142,7 @@ function useSort<T>(data: T[], initialSorts: SortState = []): UseSortReturn<T> {
 
 			return 0;
 		});
-	}, [sorts, data]);
+	}, [sorts, safeData]);
 
 	const upsertSorts = useCallback(
 		(sort: SortConfig) =>
@@ -166,7 +172,11 @@ function useSort<T>(data: T[], initialSorts: SortState = []): UseSortReturn<T> {
 
 	const resetSorts = useCallback(() => setSorts(initialSortsRef.current), []);
 
-	const replaceSorts = useCallback((sorts: SortState) => setSorts(sorts), []);
+	const replaceSorts = useCallback((sorts: SortState) => {
+		const safeSorts = Array.isArray(sorts) ? sorts : [];
+
+		setSorts(safeSorts);
+	}, []);
 
 	const toggleSort = useCallback(
 		<TType extends SortType>(

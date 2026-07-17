@@ -16,17 +16,27 @@ interface UseExpansionReturn<T> {
 	replaceExpansion: (newExpandedItems: ExpansionId[] | T[]) => void;
 }
 
-function useExpansion<T = unknown>({
-	items = [],
-	field,
-	initialExpandedIds = [],
-	multiple = false,
-}: {
-	items?: T[];
-	field?: string;
-	initialExpandedIds?: ExpansionId[];
-	multiple?: boolean;
-} = {}): UseExpansionReturn<T> {
+function useExpansion<T = unknown>(
+	options: {
+		items?: T[];
+		field?: string;
+		initialExpandedIds?: ExpansionId[];
+		multiple?: boolean;
+	} = {},
+): UseExpansionReturn<T> {
+	const safeOptions = options || {};
+
+	const items = useMemo(
+		() => (Array.isArray(safeOptions.items) ? safeOptions.items : []),
+		[safeOptions.items],
+	);
+	const initialExpandedIds =
+		Array.isArray(safeOptions.initialExpandedIds) ?
+			safeOptions.initialExpandedIds
+		:	[];
+	const field = safeOptions.field;
+	const multiple = !!safeOptions.multiple;
+
 	const initialIdsRef = useRef(initialExpandedIds);
 
 	const [expandedIds, setExpandedIds] = useState(
@@ -93,7 +103,8 @@ function useExpansion<T = unknown>({
 	const expandAll = useCallback(() => {
 		if (!multiple) return;
 
-		const allIds = items.map((item) => getValue(item, field));
+		const safeItems = Array.isArray(items) ? items : [];
+		const allIds = safeItems.map((item) => getValue(item, field));
 
 		setExpandedIds(new Set(allIds));
 	}, [items, field, multiple]);
@@ -108,7 +119,9 @@ function useExpansion<T = unknown>({
 
 	const replaceExpansion = useCallback(
 		(newExpandedItems: ExpansionId[] | T[]) => {
-			const newExpandedItemsId: ExpansionId[] = newExpandedItems.map((item) =>
+			const safeNewItems =
+				Array.isArray(newExpandedItems) ? newExpandedItems : [];
+			const newExpandedItemsId: ExpansionId[] = safeNewItems.map((item) =>
 				getValue(item, field),
 			);
 
@@ -118,7 +131,9 @@ function useExpansion<T = unknown>({
 	);
 
 	const expandedItems = useMemo(() => {
-		return items.filter((item) => expandedIds.has(getValue(item, field)));
+		const safeItems = Array.isArray(items) ? items : [];
+
+		return safeItems.filter((item) => expandedIds.has(getValue(item, field)));
 	}, [items, field, expandedIds]);
 
 	return {

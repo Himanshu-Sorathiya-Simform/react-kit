@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 
 interface UseOrderReturn<T> {
 	orderedItems: T[];
@@ -14,10 +14,14 @@ interface UseOrderReturn<T> {
 	replaceOrder: (newOrderedItems: T[]) => void;
 }
 
-function useOrder<T>(initialItems: T[]): UseOrderReturn<T> {
-	const initialItemsRef = useRef(initialItems);
+function useOrder<T>(initialItems: T[] = []): UseOrderReturn<T> {
+	const safeInitialItems = useMemo(
+		() => (Array.isArray(initialItems) ? initialItems : []),
+		[initialItems],
+	);
+	const initialItemsRef = useRef(safeInitialItems);
 
-	const [orderedItems, setOrderedItems] = useState(() => initialItems);
+	const [orderedItems, setOrderedItems] = useState(() => safeInitialItems);
 
 	const moveUp = useCallback((index: number) => {
 		if (typeof index !== "number") return;
@@ -138,7 +142,9 @@ function useOrder<T>(initialItems: T[]): UseOrderReturn<T> {
 	}, []);
 
 	const replaceOrder = useCallback((newOrderedItems: T[]) => {
-		setOrderedItems(newOrderedItems);
+		const safeNewItems = Array.isArray(newOrderedItems) ? newOrderedItems : [];
+
+		setOrderedItems(safeNewItems);
 	}, []);
 
 	return {

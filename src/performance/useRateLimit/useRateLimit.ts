@@ -15,7 +15,10 @@ function useRateLimit(
 	windowMs: number,
 	options?: RateLimitOptions,
 ): UseRateLimitReturn {
-	const [remaining, setRemaining] = useState(limit);
+	const safeLimit = Math.max(1, Number(limit) || 1);
+	const safeWindowMs = Math.max(0, Number(windowMs) || 0);
+
+	const [remaining, setRemaining] = useState(safeLimit);
 
 	const refillStrategy = options?.refillStrategy ?? "burst";
 
@@ -24,7 +27,7 @@ function useRateLimit(
 		onRateLimitReachedRef.current = options?.onRateLimitReached;
 	}, [options?.onRateLimitReached]);
 
-	const tokensRef = useRef(limit);
+	const tokensRef = useRef(safeLimit);
 
 	const [initTime] = useState(() => Date.now());
 	const lastRefillTimeRef = useRef(initTime);
@@ -43,17 +46,17 @@ function useRateLimit(
 			const timePassed = now - lastRefillTimeRef.current;
 
 			if (refillStrategy === "burst") {
-				if (timePassed >= windowMs) {
-					tokensRef.current = limit;
+				if (timePassed >= safeWindowMs) {
+					tokensRef.current = safeLimit;
 					lastRefillTimeRef.current = now;
 				}
 			} else {
-				const timePerToken = windowMs / limit;
+				const timePerToken = safeWindowMs / safeLimit;
 				const tokensToAdd = Math.floor(timePassed / timePerToken);
 
 				if (tokensToAdd > 0) {
 					tokensRef.current = Math.min(
-						limit,
+						safeLimit,
 						tokensRef.current + tokensToAdd,
 					);
 					lastRefillTimeRef.current += tokensToAdd * timePerToken;
@@ -76,26 +79,29 @@ function useRateLimit(
 				clearTimeout(timerIdRef.current);
 			}
 
-			if (tokensRef.current < limit) {
-				const timePerToken = windowMs / limit;
+			if (tokensRef.current < safeLimit) {
+				const timePerToken = safeWindowMs / safeLimit;
 				const nextRefillIn =
 					refillStrategy === "burst" ?
-						windowMs - (Date.now() - lastRefillTimeRef.current)
+						safeWindowMs - (Date.now() - lastRefillTimeRef.current)
 					:	timePerToken - (Date.now() - lastRefillTimeRef.current);
 
 				timerIdRef.current = setTimeout(
 					() => {
-						setRemaining((prev) => Math.min(limit, prev + 1));
+						setRemaining((prev) => Math.min(safeLimit, prev + 1));
 
 						lastRefillTimeRef.current = Date.now();
 
-						tokensRef.current = Math.min(limit, tokensRef.current + 1);
+						tokensRef.current = Math.min(
+							safeLimit,
+							tokensRef.current + 1,
+						);
 					},
 					Math.max(0, nextRefillIn),
 				);
 			}
 		},
-		[limit, windowMs, refillStrategy],
+		[safeLimit, safeWindowMs, refillStrategy],
 	);
 
 	return { run, remaining, isRateLimited: remaining === 0 };

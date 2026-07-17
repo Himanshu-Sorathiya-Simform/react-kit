@@ -19,14 +19,19 @@ interface UsePaginationReturn<T> {
 }
 
 function usePagination<T>(
-	data: T[],
+	data: T[] = [],
 	initialPageSize: number,
 	initialPageIndex = 0,
 ): UsePaginationReturn<T> {
+	const safeData = useMemo(() => (Array.isArray(data) ? data : []), [data]);
+
 	const [pageSize, setPageSize] = useState(initialPageSize);
 	const [pageIndex, setPageIndex] = useState(initialPageIndex);
 
-	const totalPages = Math.max(1, Math.ceil(data.length / Math.max(1, pageSize)));
+	const totalPages = Math.max(
+		1,
+		Math.ceil(safeData.length / Math.max(1, pageSize)),
+	);
 
 	const targetPageIndex = Math.min(Math.max(0, pageIndex), totalPages - 1);
 
@@ -39,8 +44,8 @@ function usePagination<T>(
 			return [];
 		}
 
-		return data.slice(pageIndex * pageSize, (pageIndex + 1) * pageSize);
-	}, [pageIndex, pageSize, data]);
+		return safeData.slice(pageIndex * pageSize, (pageIndex + 1) * pageSize);
+	}, [pageIndex, pageSize, safeData]);
 
 	const canPrevious = pageIndex > 0;
 	const canNext = pageIndex < totalPages - 1;
@@ -80,14 +85,14 @@ function usePagination<T>(
 
 				const newTotalPages = Math.max(
 					1,
-					Math.ceil(data.length / Math.max(1, newPageSize)),
+					Math.ceil(safeData.length / Math.max(1, newPageSize)),
 				);
 				setPageIndex((prev) =>
 					Math.min(Math.max(0, prev), newTotalPages - 1),
 				);
 			}
 		},
-		[data.length],
+		[safeData.length],
 	);
 
 	const resetPageIndex = useCallback(() => {
@@ -99,20 +104,20 @@ function usePagination<T>(
 
 		const newTotalPages = Math.max(
 			1,
-			Math.ceil(data.length / Math.max(1, initialPageSize)),
+			Math.ceil(safeData.length / Math.max(1, initialPageSize)),
 		);
 		setPageIndex((prev) => Math.min(Math.max(0, prev), newTotalPages - 1));
-	}, [initialPageSize, data.length]);
+	}, [initialPageSize, safeData.length]);
 
 	const resetPagination = useCallback(() => {
 		setPageSize(Math.max(1, initialPageSize));
 
 		const newTotalPages = Math.max(
 			1,
-			Math.ceil(data.length / Math.max(1, initialPageSize)),
+			Math.ceil(safeData.length / Math.max(1, initialPageSize)),
 		);
 		setPageIndex(Math.min(Math.max(0, initialPageIndex), newTotalPages - 1));
-	}, [initialPageSize, initialPageIndex, data.length]);
+	}, [initialPageSize, initialPageIndex, safeData.length]);
 
 	return {
 		pageItems,

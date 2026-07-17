@@ -39,7 +39,7 @@ function useKey(
 
 		if (!targetElement) return;
 
-		const targetKey = key.toLowerCase();
+		const targetKey = String(key || "").toLowerCase();
 
 		const resolvedEventType =
 			validKeyEventTypes.includes(eventType) ? eventType : "keydown";

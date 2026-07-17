@@ -18,15 +18,25 @@ interface UseVisibilityReturn<T> {
 	replaceVisibility: (newVisibleItems: VisibilityId[] | T[]) => void;
 }
 
-function useVisibility<T = unknown>({
-	items,
-	field,
-	initialVisibleIds = [],
-}: {
-	items: T[];
-	field?: string;
-	initialVisibleIds?: VisibilityId[];
-}): UseVisibilityReturn<T> {
+function useVisibility<T = unknown>(
+	options: {
+		items?: T[];
+		field?: string;
+		initialVisibleIds?: VisibilityId[];
+	} = {},
+): UseVisibilityReturn<T> {
+	const safeOptions = options || {};
+
+	const items = useMemo(
+		() => (Array.isArray(safeOptions.items) ? safeOptions.items : []),
+		[safeOptions.items],
+	);
+	const initialVisibleIds =
+		Array.isArray(safeOptions.initialVisibleIds) ?
+			safeOptions.initialVisibleIds
+		:	[];
+	const field = safeOptions.field;
+
 	const initialIdsRef = useRef(initialVisibleIds);
 
 	const [visibleIds, setVisibleIds] = useState(() => new Set(initialVisibleIds));
@@ -87,7 +97,10 @@ function useVisibility<T = unknown>({
 		(itemsArray?: VisibilityId[] | T[]) => {
 			setVisibleIds((prev) => {
 				const newSet = new Set(prev);
-				const targetItems = itemsArray ?? items;
+				const targetItems =
+					Array.isArray(itemsArray) ? itemsArray
+					: Array.isArray(items) ? items
+					: [];
 
 				targetItems.forEach((item) => {
 					newSet.add(getValue(item, field));
@@ -103,7 +116,10 @@ function useVisibility<T = unknown>({
 		(itemsArray?: VisibilityId[] | T[]) => {
 			setVisibleIds((prev) => {
 				const newSet = new Set(prev);
-				const targetItems = itemsArray ?? items;
+				const targetItems =
+					Array.isArray(itemsArray) ? itemsArray
+					: Array.isArray(items) ? items
+					: [];
 
 				targetItems.forEach((item) => {
 					newSet.delete(getValue(item, field));
@@ -121,7 +137,9 @@ function useVisibility<T = unknown>({
 
 	const replaceVisibility = useCallback(
 		(newVisibleItems: VisibilityId[] | T[]) => {
-			const newItemIds: VisibilityId[] = newVisibleItems.map((item) =>
+			const safeNewVisibleItems =
+				Array.isArray(newVisibleItems) ? newVisibleItems : [];
+			const newItemIds: VisibilityId[] = safeNewVisibleItems.map((item) =>
 				getValue(item, field),
 			);
 
@@ -131,7 +149,8 @@ function useVisibility<T = unknown>({
 	);
 
 	const visibleItems = useMemo(() => {
-		return items.filter((item) => {
+		const safeItems = Array.isArray(items) ? items : [];
+		return safeItems.filter((item) => {
 			const itemId = getValue(item, field);
 
 			return visibleIds.has(itemId);
@@ -139,7 +158,8 @@ function useVisibility<T = unknown>({
 	}, [items, field, visibleIds]);
 
 	const hiddenItems = useMemo(() => {
-		return items.filter((item) => {
+		const safeItems = Array.isArray(items) ? items : [];
+		return safeItems.filter((item) => {
 			const itemId = getValue(item, field);
 
 			return !visibleIds.has(itemId);

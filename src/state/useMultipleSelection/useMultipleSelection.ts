@@ -23,15 +23,25 @@ interface UseMultipleSelectionReturn<T> {
 	retainOnly: (itemsToRetain: SelectionId[] | T[]) => void;
 }
 
-function useMultipleSelection<T = unknown>({
-	items,
-	field,
-	initialSelectedIds = [],
-}: {
-	items: T[];
-	field?: string;
-	initialSelectedIds?: SelectionId[];
-}): UseMultipleSelectionReturn<T> {
+function useMultipleSelection<T = unknown>(
+	options: {
+		items?: T[];
+		field?: string;
+		initialSelectedIds?: SelectionId[];
+	} = {},
+): UseMultipleSelectionReturn<T> {
+	const safeOptions = options || {};
+
+	const items = useMemo(
+		() => (Array.isArray(safeOptions.items) ? safeOptions.items : []),
+		[safeOptions.items],
+	);
+	const initialSelectedIds =
+		Array.isArray(safeOptions.initialSelectedIds) ?
+			safeOptions.initialSelectedIds
+		:	[];
+	const field = safeOptions.field;
+
 	const initialSelectedIdsRef = useRef(initialSelectedIds);
 
 	const [selectedIds, setSelectedIds] = useState(
@@ -97,7 +107,9 @@ function useMultipleSelection<T = unknown>({
 
 	const replaceSelection = useCallback(
 		(newSelectedItems: SelectionId[] | T[]) => {
-			const newSelectedItemsId: SelectionId[] = newSelectedItems.map((item) =>
+			const safeNewItems =
+				Array.isArray(newSelectedItems) ? newSelectedItems : [];
+			const newSelectedItemsId: SelectionId[] = safeNewItems.map((item) =>
 				getValue(item, field),
 			);
 
@@ -148,8 +160,9 @@ function useMultipleSelection<T = unknown>({
 		(newItems: SelectionId[] | T[]) => {
 			setSelectedIds((prev) => {
 				const newSet = new Set(prev);
+				const safeNewItems = Array.isArray(newItems) ? newItems : [];
 
-				const newItemIdsToAdd: SelectionId[] = newItems.map((item) =>
+				const newItemIdsToAdd: SelectionId[] = safeNewItems.map((item) =>
 					getValue(item, field),
 				);
 				newItemIdsToAdd.forEach((field) => newSet.add(field));
@@ -164,9 +177,11 @@ function useMultipleSelection<T = unknown>({
 		(itemsToRemove: SelectionId[] | T[]) => {
 			setSelectedIds((prev) => {
 				const newSet = new Set(prev);
+				const safeItemsToRemove =
+					Array.isArray(itemsToRemove) ? itemsToRemove : [];
 
-				const newItemIdsToRemove: SelectionId[] = itemsToRemove.map((item) =>
-					getValue(item, field),
+				const newItemIdsToRemove: SelectionId[] = safeItemsToRemove.map(
+					(item) => getValue(item, field),
 				);
 				newItemIdsToRemove.forEach((field) => newSet.delete(field));
 
@@ -180,9 +195,11 @@ function useMultipleSelection<T = unknown>({
 		(itemsToRetain: SelectionId[] | T[]) => {
 			setSelectedIds((prev) => {
 				const newSet = new Set<SelectionId>();
+				const safeItemsToRetain =
+					Array.isArray(itemsToRetain) ? itemsToRetain : [];
 
-				const newItemIdsToRetain: SelectionId[] = itemsToRetain.map((item) =>
-					getValue(item, field),
+				const newItemIdsToRetain: SelectionId[] = safeItemsToRetain.map(
+					(item) => getValue(item, field),
 				);
 				newItemIdsToRetain.forEach(
 					(field) => prev.has(field) && newSet.add(field),

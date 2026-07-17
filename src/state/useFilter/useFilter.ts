@@ -22,12 +22,18 @@ interface UseFilterReturn<T> {
 }
 
 function useFilter<T>(
-	data: T[],
+	data: T[] = [],
 	initialFilters: FilterState<T> = [],
 ): UseFilterReturn<T> {
-	const initialFiltersRef = useRef(initialFilters);
+	const safeData = useMemo(() => (Array.isArray(data) ? data : []), [data]);
+	const safeInitialFilters = useMemo(
+		() => (Array.isArray(initialFilters) ? initialFilters : []),
+		[initialFilters],
+	);
 
-	const [filters, setFilters] = useState(() => initialFilters);
+	const initialFiltersRef = useRef(safeInitialFilters);
+
+	const [filters, setFilters] = useState(() => safeInitialFilters);
 
 	const filteredItems = useMemo(() => {
 		const processedFilters = filters
@@ -37,7 +43,7 @@ function useFilter<T>(
 				pathArray: (filterConfig.field || filterConfig.id).split("."),
 			}));
 
-		return data.filter((item) => {
+		return safeData.filter((item) => {
 			return processedFilters.every((filterConfig) => {
 				const { id, type, operator, value, compare, pathArray } =
 					filterConfig;
@@ -58,7 +64,7 @@ function useFilter<T>(
 				return operatorFn(itemValue, value, filterConfig);
 			});
 		});
-	}, [data, filters]);
+	}, [safeData, filters]);
 
 	const upsertFilter = useCallback((filter: FilterConfig<T>) => {
 		setFilters((prev) => {
@@ -91,7 +97,9 @@ function useFilter<T>(
 	}, []);
 
 	const replaceFilters = useCallback((filters: FilterConfig<T>[]) => {
-		setFilters(filters);
+		const safeFilters = Array.isArray(filters) ? filters : [];
+
+		setFilters(safeFilters);
 	}, []);
 
 	const toggleFilter = useCallback((filter: FilterConfig<T>) => {

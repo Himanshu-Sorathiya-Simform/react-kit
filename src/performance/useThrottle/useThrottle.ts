@@ -15,10 +15,12 @@ function useThrottle(
 	delay: number,
 	options: ThrottleOptions = {},
 ): UseThrottleReturn {
+	const safeDelay = Math.max(0, Number(delay) || 0);
+
 	const [isPending, setIsPending] = useState(false);
 
-	let leading = options.leading ?? true;
-	let trailing = options.trailing ?? true;
+	let leading = options?.leading ?? true;
+	let trailing = options?.trailing ?? true;
 
 	if (leading === false && trailing === false) {
 		leading = true;
@@ -78,7 +80,7 @@ function useThrottle(
 			if (
 				lastInvokeTimeRef.current === -1 ?
 					leading
-				:	now - lastInvokeTimeRef.current >= delay
+				:	now - lastInvokeTimeRef.current >= safeDelay
 			) {
 				if (timerIdRef.current) {
 					clearTimeout(timerIdRef.current);
@@ -96,7 +98,7 @@ function useThrottle(
 					lastInvokeTimeRef.current === -1 ?
 						0
 					:	now - lastInvokeTimeRef.current;
-				const remainingTime = delay - elapsed;
+				const remainingTime = safeDelay - elapsed;
 
 				timerIdRef.current = setTimeout(() => {
 					if (trailing && lastArgsRef.current && activeFuncRef.current) {
@@ -114,7 +116,7 @@ function useThrottle(
 				}, remainingTime);
 			}
 		},
-		[delay, leading, trailing],
+		[safeDelay, leading, trailing],
 	);
 
 	return { run, cancel, flush, isPending };

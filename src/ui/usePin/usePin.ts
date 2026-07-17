@@ -21,17 +21,30 @@ interface UsePinReturn<T> {
 	unpinMultiple: (itemsToRemove: PinId[] | T[]) => void;
 }
 
-function usePin<T = unknown>({
-	items,
-	field,
-	initialPinnedIds = [],
-	maxPins = Number.MAX_SAFE_INTEGER,
-}: {
-	items: T[];
-	field?: string;
-	initialPinnedIds?: PinId[];
-	maxPins?: number;
-}): UsePinReturn<T> {
+function usePin<T = unknown>(
+	options: {
+		items?: T[];
+		field?: string;
+		initialPinnedIds?: PinId[];
+		maxPins?: number;
+	} = {},
+): UsePinReturn<T> {
+	const safeOptions = options || {};
+
+	const items = useMemo(
+		() => (Array.isArray(safeOptions.items) ? safeOptions.items : []),
+		[safeOptions.items],
+	);
+	const initialPinnedIds =
+		Array.isArray(safeOptions.initialPinnedIds) ?
+			safeOptions.initialPinnedIds
+		:	[];
+	const field = safeOptions.field;
+	const maxPins =
+		typeof safeOptions.maxPins === "number" && !isNaN(safeOptions.maxPins) ?
+			Math.max(1, safeOptions.maxPins)
+		:	Number.MAX_SAFE_INTEGER;
+
 	const initialPinnedIdsRef = useRef(initialPinnedIds);
 
 	const [pinnedIds, setPinnedIds] = useState(() => new Set(initialPinnedIds));
@@ -103,7 +116,9 @@ function usePin<T = unknown>({
 
 	const replacePins = useCallback(
 		(newPinnedItems: PinId[] | T[]) => {
-			const newPinnedItemIds: PinId[] = newPinnedItems.map((item) =>
+			const safeNewPinnedItems =
+				Array.isArray(newPinnedItems) ? newPinnedItems : [];
+			const newPinnedItemIds: PinId[] = safeNewPinnedItems.map((item) =>
 				getValue(item, field),
 			);
 
@@ -116,7 +131,8 @@ function usePin<T = unknown>({
 		(newItems: PinId[] | T[]) => {
 			setPinnedIds((prev) => {
 				const newSet = new Set(prev);
-				const itemIdsToAdd: PinId[] = newItems.map((item) =>
+				const safeNewItems = Array.isArray(newItems) ? newItems : [];
+				const itemIdsToAdd: PinId[] = safeNewItems.map((item) =>
 					getValue(item, field),
 				);
 
@@ -136,7 +152,9 @@ function usePin<T = unknown>({
 		(itemsToRemove: PinId[] | T[]) => {
 			setPinnedIds((prev) => {
 				const newSet = new Set(prev);
-				const itemIdsToRemove: PinId[] = itemsToRemove.map((item) =>
+				const safeItemsToRemove =
+					Array.isArray(itemsToRemove) ? itemsToRemove : [];
+				const itemIdsToRemove: PinId[] = safeItemsToRemove.map((item) =>
 					getValue(item, field),
 				);
 
@@ -149,7 +167,9 @@ function usePin<T = unknown>({
 	);
 
 	const pinnedItems = useMemo(() => {
-		return items.filter((item) => {
+		const safeItems = Array.isArray(items) ? items : [];
+
+		return safeItems.filter((item) => {
 			const itemId = getValue(item, field);
 
 			return pinnedIds.has(itemId);
@@ -157,7 +177,9 @@ function usePin<T = unknown>({
 	}, [items, field, pinnedIds]);
 
 	const unpinnedItems = useMemo(() => {
-		return items.filter((item) => {
+		const safeItems = Array.isArray(items) ? items : [];
+
+		return safeItems.filter((item) => {
 			const itemId = getValue(item, field);
 
 			return !pinnedIds.has(itemId);

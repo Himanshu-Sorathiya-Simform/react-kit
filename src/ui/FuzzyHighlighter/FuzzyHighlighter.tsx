@@ -13,10 +13,11 @@ function FuzzyHighlighter({
 	className = "",
 	caseSensitive = false,
 }: FuzzyHighlighterProps): React.JSX.Element {
-	const sanitizedQuery = query.trim();
+	const sanitizedQuery = String(query || "").trim();
+	const safeText = String(text || "");
 
-	if (!sanitizedQuery || !text) {
-		return <>{text}</>;
+	if (!sanitizedQuery || !safeText) {
+		return <>{safeText}</>;
 	}
 
 	const queryTokens = sanitizedQuery
@@ -24,7 +25,7 @@ function FuzzyHighlighter({
 		.filter((token) => token.length > 0);
 
 	if (queryTokens.length === 0) {
-		return <>{text}</>;
+		return <>{safeText}</>;
 	}
 
 	const combinedClassName = `fuzzy-highlight ${className}`.trim();
@@ -61,7 +62,7 @@ function FuzzyHighlighter({
 	const regexPattern = `(${patternParts.join("|")})`;
 	const regex = new RegExp(regexPattern, caseSensitive ? "g" : "gi");
 
-	const parts = text.split(regex);
+	const parts = safeText.split(regex);
 
 	return (
 		<>

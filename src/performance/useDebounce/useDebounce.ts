@@ -15,14 +15,16 @@ function useDebounce(
 	delay: number,
 	options: DebounceOptions = {},
 ): UseDebounceReturn {
+	const safeDelay = Math.max(0, Number(delay) || 0);
+
 	const [isPending, setIsPending] = useState(false);
 
-	const maxWait = options.maxWait;
-	const leading = !!options.leading;
+	const maxWait = options?.maxWait;
+	const leading = !!options?.leading;
 	const trailing =
-		!leading && options.trailing === false ?
+		!leading && options?.trailing === false ?
 			true
-		:	(options.trailing ?? !leading);
+		:	(options?.trailing ?? !leading);
 
 	const activeFuncRef = useRef<((...args: unknown[]) => void) | null>(null);
 	const lastArgsRef = useRef<unknown[] | null>(null);
@@ -114,10 +116,10 @@ function useDebounce(
 					lastInvokeTimeRef.current = -1;
 
 					setIsPending(false);
-				}, delay);
+				}, safeDelay);
 			}
 		},
-		[delay, maxWait, trailing, leading],
+		[safeDelay, maxWait, trailing, leading],
 	);
 
 	return { run, cancel, flush, isPending };
