@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { DebounceOptions } from "./types.ts";
-import { useDebounce } from "./useDebounce";
+import { useDebouncedCallback } from "./useDebouncedCallback.ts";
 
 type UseDebouncedValueReturn<T> = T;
 
@@ -11,7 +11,7 @@ function useDebouncedValue<T>(
 ): UseDebouncedValueReturn<T> {
 	const [debouncedValue, setDebouncedValue] = useState<T>(value);
 
-	const { debouncedFunc } = useDebounce(
+	const { debouncedFunc } = useDebouncedCallback(
 		(newValue: T) => {
 			setDebouncedValue(newValue);
 		},

@@ -1,5 +1,13 @@
 export { type UseDebounceReturn, useDebounce } from "./useDebounce/useDebounce";
 export {
+	type UseDebouncedCallbackReturn,
+	useDebouncedCallback,
+} from "./useDebounce/useDebouncedCallback";
+export {
+	type UseDebouncedStateReturn,
+	useDebouncedState,
+} from "./useDebounce/useDebouncedState";
+export {
 	type UseDebouncedValueReturn,
 	useDebouncedValue,
 } from "./useDebounce/useDebouncedValue";

@@ -1,20 +1,20 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { DebounceOptions } from "./types.ts";
 
-interface UseDebounceReturn<Args extends any[]> {
-	debouncedFunc: (...args: Args) => void;
+interface UseDebounceReturn {
+	run: <Args extends unknown[]>(
+		func: (...args: Args) => void,
+		...args: Args
+	) => void;
 	cancel: () => void;
 	flush: () => void;
 	isPending: boolean;
 }
 
-function useDebounce<Args extends any[]>(
-	func: (...args: Args) => void,
+function useDebounce(
 	delay: number,
 	options: DebounceOptions = {},
-): UseDebounceReturn<Args> {
+): UseDebounceReturn {
 	const [isPending, setIsPending] = useState(false);
 
 	const maxWait = options.maxWait;
@@ -24,15 +24,12 @@ function useDebounce<Args extends any[]>(
 			true
 		:	(options.trailing ?? !leading);
 
-	const funcRef = useRef(func);
-	const timerIdRef = useRef<number | null>(null);
+	const activeFuncRef = useRef<((...args: unknown[]) => void) | null>(null);
+	const lastArgsRef = useRef<unknown[] | null>(null);
+
+	const timerIdRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 	const lastInvokeTimeRef = useRef(-1);
 	const lastCallTimeRef = useRef(-1);
-	const lastArgsRef = useRef<Args | null>(null);
-
-	useEffect(() => {
-		funcRef.current = func;
-	}, [func]);
 
 	const cancel = useCallback(() => {
 		if (timerIdRef.current) {
@@ -44,21 +41,23 @@ function useDebounce<Args extends any[]>(
 		lastInvokeTimeRef.current = -1;
 		lastCallTimeRef.current = -1;
 		lastArgsRef.current = null;
+		activeFuncRef.current = null;
 
 		setIsPending(false);
 	}, []);
 
 	const flush = useCallback(() => {
-		if (timerIdRef.current && lastArgsRef.current) {
+		if (timerIdRef.current && activeFuncRef.current && lastArgsRef.current) {
 			clearTimeout(timerIdRef.current);
 
 			timerIdRef.current = null;
 
-			funcRef.current(...lastArgsRef.current);
+			activeFuncRef.current(...lastArgsRef.current);
 
 			lastInvokeTimeRef.current = Date.now();
 			lastCallTimeRef.current = -1;
 			lastArgsRef.current = null;
+			activeFuncRef.current = null;
 
 			setIsPending(false);
 		}
@@ -70,18 +69,19 @@ function useDebounce<Args extends any[]>(
 		};
 	}, [cancel]);
 
-	const debouncedFunc = useCallback(
-		(...args: Args) => {
+	const run = useCallback(
+		<Args extends unknown[]>(func: (...args: Args) => void, ...args: Args) => {
 			setIsPending(true);
 
 			lastCallTimeRef.current = Date.now();
 			lastArgsRef.current = args;
+			activeFuncRef.current = func as (...args: unknown[]) => void;
 
 			if (lastInvokeTimeRef.current === -1) {
 				lastInvokeTimeRef.current = Date.now();
 
 				if (leading === true) {
-					funcRef.current(...args);
+					activeFuncRef.current(...args);
 				}
 			}
 
@@ -91,7 +91,7 @@ function useDebounce<Args extends any[]>(
 			) {
 				if (timerIdRef.current) clearTimeout(timerIdRef.current);
 
-				funcRef.current(...args);
+				if (activeFuncRef.current) activeFuncRef.current(...args);
 
 				lastInvokeTimeRef.current = -1;
 
@@ -106,7 +106,9 @@ function useDebounce<Args extends any[]>(
 						lastCallTimeRef.current !== lastInvokeTimeRef.current
 						&& trailing !== false
 					) {
-						funcRef.current(...args);
+						if (activeFuncRef.current && lastArgsRef.current) {
+							activeFuncRef.current(...lastArgsRef.current);
+						}
 					}
 
 					lastInvokeTimeRef.current = -1;
@@ -118,7 +120,7 @@ function useDebounce<Args extends any[]>(
 		[delay, maxWait, trailing, leading],
 	);
 
-	return { debouncedFunc, cancel, flush, isPending };
+	return { run, cancel, flush, isPending };
 }
 
 export { type UseDebounceReturn, useDebounce };
