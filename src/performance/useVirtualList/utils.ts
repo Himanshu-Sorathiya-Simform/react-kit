@@ -1,3 +1,4 @@
+import { OffsetCache } from "./offsetCache.ts";
 import type { ScrollAlign } from "./types.ts";
 
 function getSizeAtIndex(
@@ -15,11 +16,18 @@ function getSizeAtIndex(
 function getStartOffset(
 	index: number,
 	estimateSize: number | ((index: number) => number),
+	cache?: OffsetCache,
 ): number {
 	if (index <= 0) return 0;
+
 	if (typeof estimateSize === "number") {
 		return index * Math.max(0, estimateSize);
 	}
+
+	if (cache) {
+		return cache.getItemStartOffset(index);
+	}
+
 	let offset = 0;
 	for (let i = 0; i < index; i++) {
 		offset += getSizeAtIndex(i, estimateSize);
@@ -30,6 +38,7 @@ function getStartOffset(
 function getTotalSize(
 	count: number,
 	estimateSize: number | ((index: number) => number),
+	cache?: OffsetCache,
 ): number {
 	if (count <= 0) return 0;
 
@@ -37,11 +46,14 @@ function getTotalSize(
 		return count * Math.max(0, estimateSize);
 	}
 
+	if (cache) {
+		return cache.getTotalSize();
+	}
+
 	let total = 0;
 	for (let i = 0; i < count; i++) {
 		total += getSizeAtIndex(i, estimateSize);
 	}
-
 	return total;
 }
 
@@ -105,6 +117,7 @@ function calcRange(
 	estimateSize: number | ((index: number) => number),
 	overscan: number,
 	reverse: boolean,
+	cache?: OffsetCache,
 ): { startIndex: number; endIndex: number } {
 	if (count <= 0 || viewportSize <= 0) {
 		return { startIndex: 0, endIndex: -1 };
@@ -134,6 +147,18 @@ function calcRange(
 				count - 1,
 				Math.ceil((scrollOffset + viewportSize) / safeSize) - 1,
 			);
+		}
+	} else if (cache) {
+		if (reverse) {
+			const scrollEnd = scrollOffset + viewportSize;
+
+			startIndex = cache.findStartIndexReverse(scrollOffset, totalSize);
+			endIndex = cache.findEndIndexReverse(scrollEnd, totalSize);
+		} else {
+			const scrollEnd = scrollOffset + viewportSize;
+
+			startIndex = cache.findStartIndex(scrollOffset);
+			endIndex = cache.findEndIndex(scrollEnd);
 		}
 	} else {
 		if (reverse) {
@@ -210,9 +235,13 @@ function calcScrollToOffset(
 	currentOffset: number,
 	estimateSize: number | ((index: number) => number),
 	reverse: boolean,
+	cache?: OffsetCache,
 ): number {
-	const itemSize = getSizeAtIndex(targetIndex, estimateSize);
-	const naturalStart = getStartOffset(targetIndex, estimateSize);
+	const itemSize =
+		cache ?
+			cache.getItemSize(targetIndex)
+		:	getSizeAtIndex(targetIndex, estimateSize);
+	const naturalStart = getStartOffset(targetIndex, estimateSize, cache);
 
 	const physicalStart =
 		reverse ? totalSize - naturalStart - itemSize : naturalStart;

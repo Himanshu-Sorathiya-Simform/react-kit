@@ -1,7 +1,17 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+	type Key,
+	useCallback,
+	useEffect,
+	useLayoutEffect,
+	useMemo,
+	useRef,
+	useState,
+} from "react";
 import { useEventListener } from "../../events/useEventListener/useEventListener.ts";
+import { getValue } from "../../shared/utils.ts";
 import { useDebouncedCallback } from "../useDebounce/useDebouncedCallback.ts";
 import { DEFAULT_OVERSCAN, SCROLLING_DEBOUNCE_MS } from "./constants.ts";
+import { OffsetCache } from "./offsetCache.ts";
 import type {
 	ScrollToIndexOptions,
 	ScrollToOffsetOptions,
@@ -27,10 +37,9 @@ interface UseVirtualListReturn {
 	scrollToOffset: (offset: number, options?: ScrollToOffsetOptions) => void;
 }
 
-function useVirtualList(options: UseVirtualListOptions): UseVirtualListReturn {
-	const [scrollOffset, setScrollOffset] = useState(0);
-	const [isScrolling, setIsScrolling] = useState(false);
-
+function useVirtualList<T = unknown>(
+	options: UseVirtualListOptions<T>,
+): UseVirtualListReturn {
 	const {
 		count,
 		estimateSize,
@@ -39,6 +48,11 @@ function useVirtualList(options: UseVirtualListOptions): UseVirtualListReturn {
 		horizontal = false,
 		reverse = false,
 		scrollingDelay = SCROLLING_DEBOUNCE_MS,
+		initialViewportSize = 0,
+		data,
+		itemKey,
+		initialOffset,
+		initialScrollIndex,
 	} = options;
 
 	const safeCount = Math.max(0, Math.trunc(Number(count)) || 0);
@@ -50,6 +64,56 @@ function useVirtualList(options: UseVirtualListOptions): UseVirtualListReturn {
 		optionsRef.current = options;
 	});
 
+	const renderCache = useMemo(() => {
+		if (typeof estimateSize !== "function") return undefined;
+
+		const cache = new OffsetCache();
+		cache.initializeOffsets(safeCount, estimateSize);
+
+		return cache;
+	}, [safeCount, estimateSize]);
+
+	const cacheRef = useRef(renderCache);
+
+	useLayoutEffect(() => {
+		cacheRef.current = renderCache;
+	}, [renderCache]);
+
+	const [scrollOffset, setScrollOffset] = useState(() => {
+		if (typeof initialOffset === "number") {
+			return Math.max(0, initialOffset);
+		}
+
+		if (typeof initialScrollIndex === "number" && safeCount > 0) {
+			const safeIdx = Math.max(
+				0,
+				Math.min(Math.trunc(Number(initialScrollIndex)) || 0, safeCount - 1),
+			);
+
+			const naturalStart =
+				renderCache ?
+					renderCache.getItemStartOffset(safeIdx)
+				:	getStartOffset(safeIdx, estimateSize);
+
+			if (reverse) {
+				const itemSize =
+					renderCache ?
+						renderCache.getItemSize(safeIdx)
+					:	getSizeAtIndex(safeIdx, estimateSize);
+				const totalSize = getTotalSize(safeCount, estimateSize, renderCache);
+
+				return Math.max(0, totalSize - naturalStart - itemSize);
+			}
+
+			return naturalStart;
+		}
+
+		return 0;
+	});
+	const [isScrolling, setIsScrolling] = useState(false);
+	const [, forceRender] = useState({});
+	const initialScrollMounted = useRef(false);
+
 	const { debouncedFunc: resetIsScrolling } = useDebouncedCallback(
 		() => setIsScrolling(false),
 		scrollingDelay,
@@ -60,12 +124,30 @@ function useVirtualList(options: UseVirtualListOptions): UseVirtualListReturn {
 	useEffect(() => {
 		if (!scrollEl) return;
 
-		const { horizontal } = optionsRef.current;
+		if (!initialScrollMounted.current) {
+			initialScrollMounted.current = true;
 
-		const scrollElOffset = getScrollElementOffset(scrollEl, horizontal ?? false);
+			if (
+				typeof initialOffset === "number"
+				|| typeof initialScrollIndex === "number"
+			) {
+				const resolvedEl = resolveScrollElement(scrollEl);
 
-		setScrollOffset(scrollElOffset);
-	}, [scrollEl]);
+				if (resolvedEl) {
+					resolvedEl.scrollTo({
+						[horizontal ? "left" : "top"]: scrollOffset,
+						behavior: "auto",
+					});
+				}
+
+				return;
+			}
+		}
+
+		const scrollElOffset = getScrollElementOffset(scrollEl, horizontal);
+
+		setScrollOffset((prev) => (prev === scrollElOffset ? prev : scrollElOffset));
+	}, [scrollEl, horizontal, initialOffset, initialScrollIndex, scrollOffset]);
 
 	function handleScroll() {
 		const { getScrollElement, horizontal } = optionsRef.current;
@@ -92,8 +174,29 @@ function useVirtualList(options: UseVirtualListOptions): UseVirtualListReturn {
 		passive: true,
 	});
 
-	const scrollElSize = getScrollElementSize(scrollEl, horizontal);
-	const totalSize = getTotalSize(safeCount, estimateSize);
+	useEffect(() => {
+		if (!scrollEl) return;
+
+		const handleResize = () => forceRender({});
+
+		if (scrollEl instanceof Window) {
+			scrollEl.addEventListener("resize", handleResize);
+
+			return () => scrollEl.removeEventListener("resize", handleResize);
+		}
+
+		const observer = new ResizeObserver(handleResize);
+		const target =
+			scrollEl instanceof Document ? scrollEl.documentElement : scrollEl;
+
+		observer.observe(target);
+
+		return () => observer.disconnect();
+	}, [scrollEl]);
+
+	const scrollElSize =
+		getScrollElementSize(scrollEl, horizontal) || initialViewportSize;
+	const totalSize = getTotalSize(safeCount, estimateSize, renderCache);
 
 	const { startIndex, endIndex } = calcRange(
 		scrollOffset,
@@ -103,20 +206,40 @@ function useVirtualList(options: UseVirtualListOptions): UseVirtualListReturn {
 		estimateSize,
 		safeOverscan,
 		reverse,
+		renderCache,
 	);
 
 	const virtualItems: VirtualItem[] = [];
 
 	if (startIndex <= endIndex) {
-		let cumulativeStart = getStartOffset(startIndex, estimateSize);
+		let cumulativeStart =
+			renderCache ?
+				renderCache.getItemStartOffset(startIndex)
+			:	getStartOffset(startIndex, estimateSize);
 
 		for (let i = startIndex; i <= endIndex; i++) {
-			const size = getSizeAtIndex(i, estimateSize);
+			const size =
+				renderCache ?
+					renderCache.getItemSize(i)
+				:	getSizeAtIndex(i, estimateSize);
 
 			const start =
 				reverse ? totalSize - cumulativeStart - size : cumulativeStart;
 
-			virtualItems.push({ index: i, size, start });
+			let key: Key = i;
+			if (itemKey) {
+				if (typeof itemKey === "function") {
+					key = itemKey(i, data?.[i]);
+				} else if (data && data[i] !== undefined && data[i] !== null) {
+					const val = getValue(data[i], itemKey);
+
+					if (typeof val === "string" || typeof val === "number") {
+						key = val;
+					}
+				}
+			}
+
+			virtualItems.push({ key, index: i, size, start });
 
 			cumulativeStart += size;
 		}
@@ -132,10 +255,15 @@ function useVirtualList(options: UseVirtualListOptions): UseVirtualListReturn {
 			if (!scrollEl) return;
 
 			const isHorizontal = horizontal ?? false;
-			const scrollElSize = getScrollElementSize(scrollEl, isHorizontal);
+			const scrollElSize =
+				getScrollElementSize(scrollEl, isHorizontal)
+				|| optionsRef.current.initialViewportSize
+				|| 0;
+
+			const callbackCache = cacheRef.current;
 
 			const safeCount = Math.max(0, Math.trunc(Number(count)) || 0);
-			const totalSize = getTotalSize(safeCount, estimateSize);
+			const totalSize = getTotalSize(safeCount, estimateSize, callbackCache);
 
 			const clampedOffset = Math.max(
 				0,
@@ -147,7 +275,7 @@ function useVirtualList(options: UseVirtualListOptions): UseVirtualListReturn {
 			if (!resolvedEl) return;
 
 			const scrollToOpts: ScrollToOptions = {
-				behavior: scrollOptions?.smooth === true ? "smooth" : "instant",
+				behavior: scrollOptions?.smooth === true ? "smooth" : "auto",
 			};
 
 			if (isHorizontal) {
@@ -181,8 +309,13 @@ function useVirtualList(options: UseVirtualListOptions): UseVirtualListReturn {
 			const isHorizontal = horizontal ?? false;
 			const isReverse = reverse ?? false;
 
-			const scrollElSize = getScrollElementSize(scrollEl, isHorizontal);
-			const totalSize = getTotalSize(safeCount, estimateSize);
+			const callbackCache = cacheRef.current;
+
+			const scrollElSize =
+				getScrollElementSize(scrollEl, isHorizontal)
+				|| optionsRef.current.initialViewportSize
+				|| 0;
+			const totalSize = getTotalSize(safeCount, estimateSize, callbackCache);
 			const curOffset = getScrollElementOffset(scrollEl, isHorizontal);
 
 			const targetOffset = calcScrollToOffset(
@@ -193,6 +326,7 @@ function useVirtualList(options: UseVirtualListOptions): UseVirtualListReturn {
 				curOffset,
 				estimateSize,
 				isReverse,
+				callbackCache,
 			);
 
 			const resolvedEl = resolveScrollElement(scrollEl);
@@ -200,7 +334,7 @@ function useVirtualList(options: UseVirtualListOptions): UseVirtualListReturn {
 			if (!resolvedEl) return;
 
 			const scrollToOpts: ScrollToOptions = {
-				behavior: scrollOptions?.smooth === true ? "smooth" : "instant",
+				behavior: scrollOptions?.smooth === true ? "smooth" : "auto",
 			};
 
 			if (isHorizontal) {
