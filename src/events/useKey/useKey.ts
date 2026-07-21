@@ -2,6 +2,9 @@ import { useEffect, useLayoutEffect, useRef } from "react";
 import { validKeyEventTypes } from "./constants.ts";
 import type { KeyOptions } from "./types.ts";
 
+const useIsomorphicLayoutEffect =
+	typeof window !== "undefined" ? useLayoutEffect : useEffect;
+
 type UseKeyReturn = void;
 
 function useKey(
@@ -18,14 +21,21 @@ function useKey(
 		shiftKey = false,
 		altKey = false,
 		metaKey = false,
-		target = window,
+		target,
 	}: KeyOptions = {},
 ): UseKeyReturn {
+	const resolvedTarget =
+		target === undefined ?
+			typeof window === "undefined" ?
+				null
+			:	window
+		:	target;
+
 	const funcRef = useRef(handler);
 	const enabledRef = useRef(enabled);
 	const hasFiredRef = useRef(false);
 
-	useLayoutEffect(() => {
+	useIsomorphicLayoutEffect(() => {
 		funcRef.current = handler;
 	}, [handler]);
 
@@ -35,7 +45,9 @@ function useKey(
 
 	useEffect(() => {
 		const targetElement =
-			target && "current" in target ? target.current : target;
+			resolvedTarget && "current" in resolvedTarget ?
+				resolvedTarget.current
+			:	resolvedTarget;
 
 		if (!targetElement) return;
 
@@ -124,7 +136,7 @@ function useKey(
 		shiftKey,
 		altKey,
 		metaKey,
-		target,
+		resolvedTarget,
 	]);
 }
 

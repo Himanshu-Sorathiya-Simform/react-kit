@@ -163,13 +163,7 @@ Set `ignoreWhenFocusedInInputs: false` if you deliberately want the shortcut to 
 
 ## Gotchas & Edge Cases
 
-- **SSR Warning.** This library is **strictly client-side**. The `target` option defaults to `window`, and since `window` does not exist during server-side rendering, using `useKey` in an SSR context (Next.js, Remix, etc.) without guarding for the client will throw:
-
-```
-ReferenceError: window is not defined
-```
-
-Make sure any component using `useKey` only renders on the client — for example, by rendering it inside a client-only boundary, or ensuring the component itself is marked as client-only in frameworks that distinguish server and client components.
+- **SSR Safe.** This hook safely checks for the `window` object before attempting to bind events or fall back to default targets. You can safely render components using `useKey` in Next.js, Remix, or other server-side rendered frameworks without worrying about `ReferenceError: window is not defined`.
 
 - **`keypress` Is Deprecated.** The `keypress` event is deprecated in modern browsers and should be avoided. Use `eventType: "keydown"` instead. If you were relying on `keypress`'s non-repeating behavior for a single key press, replicate it with:
 
