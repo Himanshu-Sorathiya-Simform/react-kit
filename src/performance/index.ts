@@ -41,3 +41,20 @@ export {
 export type { DebounceOptions } from "./useDebounce/types";
 export type { RateLimitOptions } from "./useRateLimit/types";
 export type { ThrottleOptions } from "./useThrottle/types";
+export type {
+	ScrollToCellOptions,
+	ScrollToColumnOptions,
+	ScrollToRowOptions,
+	UseVirtualGridOptions,
+	VirtualCell,
+} from "./useVirtualGrid/types";
+export type {
+	ScrollToIndexOptions,
+	UseVirtualListOptions,
+	VirtualItem,
+} from "./useVirtualList/types";
+export type {
+	Axis,
+	ScrollAlign,
+	ScrollToOffsetOptions,
+} from "./virtualShared/types";

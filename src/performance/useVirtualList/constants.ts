@@ -1,5 +1,5 @@
-const DEFAULT_OVERSCAN = 3;
+import { SCROLLING_DEBOUNCE_MS } from "../virtualShared/constants.ts";
 
-const SCROLLING_DEBOUNCE_MS = 150;
+const DEFAULT_OVERSCAN = 3;
 
 export { DEFAULT_OVERSCAN, SCROLLING_DEBOUNCE_MS };

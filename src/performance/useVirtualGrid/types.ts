@@ -1,6 +1,5 @@
 import type { Key } from "react";
-
-type ScrollAlign = "start" | "center" | "end" | "auto";
+import type { ScrollAlign, ScrollToOffsetOptions } from "../virtualShared/types.ts";
 
 interface ScrollToCellOptions {
 	rowAlign?: ScrollAlign;
@@ -15,10 +14,6 @@ interface ScrollToRowOptions {
 
 interface ScrollToColumnOptions {
 	align?: ScrollAlign;
-	smooth?: boolean;
-}
-
-interface ScrollToOffsetOptions {
 	smooth?: boolean;
 }
 

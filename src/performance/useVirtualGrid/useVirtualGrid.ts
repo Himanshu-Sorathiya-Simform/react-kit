@@ -8,7 +8,6 @@ import {
 } from "react";
 import { useEventListener } from "../../events/useEventListener/useEventListener.ts";
 import { useDebouncedCallback } from "../useDebounce/useDebouncedCallback.ts";
-import { OffsetCache } from "../virtualShared/offsetCache.ts";
 import {
 	DEFAULT_OVERSCAN_COLS,
 	DEFAULT_OVERSCAN_ROWS,
@@ -30,6 +29,7 @@ import {
 	getSizeAtIndex,
 	getStartOffset,
 	getTotalSize,
+	OffsetCache,
 	resolveScrollElement,
 } from "./utils.ts";
 
@@ -269,7 +269,6 @@ function useVirtualGrid(options: UseVirtualGridOptions): UseVirtualGridReturn {
 	const { startIndex: rowStart, endIndex: rowEnd } = calcAxisRange(
 		scrollTop,
 		scrollElHeight,
-		totalHeight,
 		safeRowCount,
 		estimateRowHeight,
 		safeOverscanRows,
@@ -279,7 +278,6 @@ function useVirtualGrid(options: UseVirtualGridOptions): UseVirtualGridReturn {
 	const { startIndex: colStart, endIndex: colEnd } = calcAxisRange(
 		scrollLeft,
 		scrollElWidth,
-		totalWidth,
 		safeColCount,
 		estimateColumnWidth,
 		safeOverscanCols,

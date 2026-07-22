@@ -1,13 +1,8 @@
 import type { Key } from "react";
-
-type ScrollAlign = "start" | "center" | "end" | "auto";
+import type { ScrollAlign, ScrollToOffsetOptions } from "../virtualShared/types.ts";
 
 interface ScrollToIndexOptions {
 	align?: ScrollAlign;
-	smooth?: boolean;
-}
-
-interface ScrollToOffsetOptions {
 	smooth?: boolean;
 }
 

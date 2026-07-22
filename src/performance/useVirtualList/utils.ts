@@ -1,112 +1,26 @@
 import { OffsetCache } from "../virtualShared/offsetCache.ts";
+import {
+	getScrollElementOffset as _getScrollElementOffset,
+	getScrollElementSize as _getScrollElementSize,
+	getSizeAtIndex,
+	getStartOffset,
+	getTotalSize,
+	resolveScrollElement,
+} from "../virtualShared/utils.ts";
 import type { ScrollAlign } from "./types.ts";
-
-function getSizeAtIndex(
-	index: number,
-	estimateSize: number | ((index: number) => number),
-): number {
-	const raw =
-		typeof estimateSize === "function" ? estimateSize(index) : estimateSize;
-
-	const size = Number(raw);
-
-	return Number.isFinite(size) && size >= 0 ? size : 0;
-}
-
-function getStartOffset(
-	index: number,
-	estimateSize: number | ((index: number) => number),
-	cache?: OffsetCache,
-): number {
-	if (index <= 0) return 0;
-
-	if (typeof estimateSize === "number") {
-		return index * Math.max(0, estimateSize);
-	}
-
-	if (cache) {
-		return cache.getItemStartOffset(index);
-	}
-
-	let offset = 0;
-	for (let i = 0; i < index; i++) {
-		offset += getSizeAtIndex(i, estimateSize);
-	}
-	return offset;
-}
-
-function getTotalSize(
-	count: number,
-	estimateSize: number | ((index: number) => number),
-	cache?: OffsetCache,
-): number {
-	if (count <= 0) return 0;
-
-	if (typeof estimateSize === "number") {
-		return count * Math.max(0, estimateSize);
-	}
-
-	if (cache) {
-		return cache.getTotalSize();
-	}
-
-	let total = 0;
-	for (let i = 0; i < count; i++) {
-		total += getSizeAtIndex(i, estimateSize);
-	}
-	return total;
-}
 
 function getScrollElementSize(
 	el: HTMLElement | Window | Document | null,
 	horizontal: boolean,
 ): number {
-	if (!el) return 0;
-
-	if (el instanceof Window) {
-		return horizontal ?
-				document.documentElement.clientWidth
-			:	document.documentElement.clientHeight;
-	}
-
-	if (el instanceof Document) {
-		return horizontal ?
-				el.documentElement.clientWidth
-			:	el.documentElement.clientHeight;
-	}
-
-	return horizontal ? el.clientWidth : el.clientHeight;
+	return _getScrollElementSize(el, horizontal ? "horizontal" : "vertical");
 }
 
 function getScrollElementOffset(
 	el: HTMLElement | Window | Document | null,
 	horizontal: boolean,
 ): number {
-	if (!el) return 0;
-
-	if (el instanceof Window) {
-		return horizontal ? el.scrollX : el.scrollY;
-	}
-
-	if (el instanceof Document) {
-		return horizontal ?
-				el.documentElement.scrollLeft
-			:	el.documentElement.scrollTop;
-	}
-
-	return horizontal ? el.scrollLeft : el.scrollTop;
-}
-
-function resolveScrollElement(
-	el: HTMLElement | Window | Document | null,
-): Element | null {
-	if (!el) return null;
-
-	if (el instanceof Window) return document.documentElement;
-
-	if (el instanceof Document) return el.scrollingElement ?? el.documentElement;
-
-	return el;
+	return _getScrollElementOffset(el, horizontal ? "horizontal" : "vertical");
 }
 
 function calcRange(
@@ -304,5 +218,6 @@ export {
 	getSizeAtIndex,
 	getStartOffset,
 	getTotalSize,
+	OffsetCache,
 	resolveScrollElement,
 };
