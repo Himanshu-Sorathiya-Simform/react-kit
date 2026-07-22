@@ -1,5 +1,8 @@
 import type { Key } from "react";
-import type { ScrollAlign, ScrollToOffsetOptions } from "../virtualShared/types.ts";
+import type {
+	ScrollAlign,
+	ScrollToOffsetOptions,
+} from "../../shared/virtualShared/types.ts";
 
 interface ScrollToCellOptions {
 	rowAlign?: ScrollAlign;

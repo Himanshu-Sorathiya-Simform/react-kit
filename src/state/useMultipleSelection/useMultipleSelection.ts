@@ -1,7 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from "react";
+import type { SelectionId } from "../../shared/selectionShared/types.ts";
 import { getValue } from "../../shared/utils.ts";
-
-type SelectionId = string | number;
 
 interface UseMultipleSelectionReturn<T> {
 	selectedIds: SelectionId[];

@@ -1,4 +1,4 @@
-import { SCROLLING_DEBOUNCE_MS } from "../virtualShared/constants.ts";
+import { SCROLLING_DEBOUNCE_MS } from "../../shared/virtualShared/constants.ts";
 
 const DEFAULT_OVERSCAN_ROWS = 3;
 const DEFAULT_OVERSCAN_COLS = 3;

@@ -1,6 +1,5 @@
 import { useCallback, useState } from "react";
-
-type SelectionId = string | number;
+import type { SelectionId } from "../../shared/selectionShared/types.ts";
 
 interface UseSingleSelectionReturn {
 	selectedId: SelectionId | undefined;

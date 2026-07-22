@@ -1,4 +1,4 @@
-import { OffsetCache } from "../virtualShared/offsetCache.ts";
+import { OffsetCache } from "../../shared/virtualShared/offsetCache.ts";
 import {
 	getScrollElementOffset,
 	getScrollElementSize,
@@ -6,7 +6,7 @@ import {
 	getStartOffset,
 	getTotalSize,
 	resolveScrollElement,
-} from "../virtualShared/utils.ts";
+} from "../../shared/virtualShared/utils.ts";
 import type { ScrollAlign } from "./types.ts";
 
 function calcAxisRange(

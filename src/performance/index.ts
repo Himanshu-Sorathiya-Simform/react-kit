@@ -38,6 +38,11 @@ export {
 	useVirtualList,
 } from "./useVirtualList/useVirtualList";
 
+export type {
+	Axis,
+	ScrollAlign,
+	ScrollToOffsetOptions,
+} from "../shared/virtualShared/types";
 export type { DebounceOptions } from "./useDebounce/types";
 export type { RateLimitOptions } from "./useRateLimit/types";
 export type { ThrottleOptions } from "./useThrottle/types";
@@ -53,8 +58,3 @@ export type {
 	UseVirtualListOptions,
 	VirtualItem,
 } from "./useVirtualList/types";
-export type {
-	Axis,
-	ScrollAlign,
-	ScrollToOffsetOptions,
-} from "./virtualShared/types";
