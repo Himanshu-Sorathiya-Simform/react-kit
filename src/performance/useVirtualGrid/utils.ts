@@ -1,13 +1,14 @@
 import { OffsetCache } from "../virtualShared/offsetCache.ts";
 import type { ScrollAlign } from "./types.ts";
 
+type Axis = "vertical" | "horizontal";
+
 function getSizeAtIndex(
 	index: number,
 	estimateSize: number | ((index: number) => number),
 ): number {
 	const raw =
 		typeof estimateSize === "function" ? estimateSize(index) : estimateSize;
-
 	const size = Number(raw);
 
 	return Number.isFinite(size) && size >= 0 ? size : 0;
@@ -59,42 +60,46 @@ function getTotalSize(
 
 function getScrollElementSize(
 	el: HTMLElement | Window | Document | null,
-	horizontal: boolean,
+	axis: Axis,
 ): number {
 	if (!el) return 0;
 
+	const isVertical = axis === "vertical";
+
 	if (el instanceof Window) {
-		return horizontal ?
-				document.documentElement.clientWidth
-			:	document.documentElement.clientHeight;
+		return isVertical ?
+				document.documentElement.clientHeight
+			:	document.documentElement.clientWidth;
 	}
 
 	if (el instanceof Document) {
-		return horizontal ?
-				el.documentElement.clientWidth
-			:	el.documentElement.clientHeight;
+		return isVertical ?
+				el.documentElement.clientHeight
+			:	el.documentElement.clientWidth;
 	}
 
-	return horizontal ? el.clientWidth : el.clientHeight;
+	return isVertical ? el.clientHeight : el.clientWidth;
 }
 
 function getScrollElementOffset(
 	el: HTMLElement | Window | Document | null,
-	horizontal: boolean,
+	axis: Axis,
 ): number {
 	if (!el) return 0;
 
+	const isVertical = axis === "vertical";
+
 	if (el instanceof Window) {
-		return horizontal ? el.scrollX : el.scrollY;
+		return isVertical ? el.scrollY : el.scrollX;
 	}
 
 	if (el instanceof Document) {
-		return horizontal ?
-				el.documentElement.scrollLeft
-			:	el.documentElement.scrollTop;
+		return isVertical ?
+				el.documentElement.scrollTop
+			:	el.documentElement.scrollLeft;
 	}
 
-	return horizontal ? el.scrollLeft : el.scrollTop;
+	return isVertical ? el.scrollTop : el.scrollLeft;
 }
 
 function resolveScrollElement(
@@ -109,14 +114,13 @@ function resolveScrollElement(
 	return el;
 }
 
-function calcRange(
+function calcAxisRange(
 	scrollOffset: number,
 	viewportSize: number,
 	totalSize: number,
 	count: number,
 	estimateSize: number | ((index: number) => number),
 	overscan: number,
-	reverse: boolean,
 	cache?: OffsetCache,
 ): { startIndex: number; endIndex: number } {
 	if (count <= 0 || viewportSize <= 0) {
@@ -132,15 +136,6 @@ function calcRange(
 		if (safeSize === 0) {
 			startIndex = 0;
 			endIndex = count - 1;
-		} else if (reverse) {
-			startIndex = Math.max(
-				0,
-				Math.floor((totalSize - scrollOffset - viewportSize) / safeSize),
-			);
-			endIndex = Math.min(
-				count - 1,
-				Math.ceil((totalSize - scrollOffset) / safeSize) - 1,
-			);
 		} else {
 			startIndex = Math.max(0, Math.floor(scrollOffset / safeSize));
 			endIndex = Math.min(
@@ -149,75 +144,39 @@ function calcRange(
 			);
 		}
 	} else if (cache) {
-		if (reverse) {
-			const scrollEnd = scrollOffset + viewportSize;
+		const scrollEnd = scrollOffset + viewportSize;
 
-			startIndex = cache.findStartIndexReverse(scrollOffset, totalSize);
-			endIndex = cache.findEndIndexReverse(scrollEnd, totalSize);
-		} else {
-			const scrollEnd = scrollOffset + viewportSize;
-
-			startIndex = cache.findStartIndex(scrollOffset);
-			endIndex = cache.findEndIndex(scrollEnd);
-		}
+		startIndex = cache.findStartIndex(scrollOffset);
+		endIndex = cache.findEndIndex(scrollEnd);
 	} else {
-		if (reverse) {
-			startIndex = count;
-			endIndex = -1;
-			let cumFromTop = 0;
+		startIndex = 0;
+		endIndex = -1;
+		let cumOffset = 0;
+		let foundStart = false;
 
-			for (let i = 0; i < count; i++) {
-				const itemSize = getSizeAtIndex(i, estimateSize);
-				const itemEnd = totalSize - cumFromTop;
-				const itemStart = itemEnd - itemSize;
+		for (let i = 0; i < count; i++) {
+			const itemSize = getSizeAtIndex(i, estimateSize);
+			const itemEnd = cumOffset + itemSize;
 
-				if (totalSize - cumFromTop <= scrollOffset) break;
+			if (!foundStart && itemEnd > scrollOffset) {
+				startIndex = i;
+				foundStart = true;
+			}
 
-				if (itemStart < scrollOffset + viewportSize) {
-					if (i < startIndex) {
-						startIndex = i;
-					}
-
+			if (foundStart) {
+				if (cumOffset < scrollOffset + viewportSize) {
 					endIndex = i;
+				} else {
+					break;
 				}
-
-				cumFromTop += itemSize;
 			}
 
-			if (startIndex === count) {
-				startIndex = 0;
-				endIndex = -1;
-			}
-		} else {
+			cumOffset += itemSize;
+		}
+
+		if (!foundStart) {
 			startIndex = 0;
 			endIndex = -1;
-			let cumOffset = 0;
-			let foundStart = false;
-
-			for (let i = 0; i < count; i++) {
-				const itemSize = getSizeAtIndex(i, estimateSize);
-				const itemEnd = cumOffset + itemSize;
-
-				if (!foundStart && itemEnd > scrollOffset) {
-					startIndex = i;
-					foundStart = true;
-				}
-
-				if (foundStart) {
-					if (cumOffset < scrollOffset + viewportSize) {
-						endIndex = i;
-					} else {
-						break;
-					}
-				}
-
-				cumOffset += itemSize;
-			}
-
-			if (!foundStart) {
-				startIndex = 0;
-				endIndex = -1;
-			}
 		}
 	}
 
@@ -227,68 +186,54 @@ function calcRange(
 	return { startIndex, endIndex };
 }
 
-function calcScrollToOffset(
+function calcScrollToAxisOffset(
 	targetIndex: number,
 	align: ScrollAlign,
 	viewportSize: number,
 	totalSize: number,
 	currentOffset: number,
 	estimateSize: number | ((index: number) => number),
-	reverse: boolean,
 	cache?: OffsetCache,
 ): number {
 	const itemSize =
 		cache ?
 			cache.getItemSize(targetIndex)
 		:	getSizeAtIndex(targetIndex, estimateSize);
-	const naturalStart = getStartOffset(targetIndex, estimateSize, cache);
 
-	const physicalStart =
-		reverse ? totalSize - naturalStart - itemSize : naturalStart;
-	const physicalEnd = physicalStart + itemSize;
-
+	const itemStart = getStartOffset(targetIndex, estimateSize, cache);
+	const itemEnd = itemStart + itemSize;
 	const maxOffset = Math.max(0, totalSize - viewportSize);
 
 	let targetOffset: number;
 
 	switch (align) {
 		case "start":
-			targetOffset =
-				reverse ? Math.max(0, physicalEnd - viewportSize) : physicalStart;
+			targetOffset = itemStart;
 			break;
 
 		case "end":
-			targetOffset =
-				reverse ? physicalStart : Math.max(0, physicalEnd - viewportSize);
+			targetOffset = Math.max(0, itemEnd - viewportSize);
 			break;
 
 		case "center":
-			targetOffset = Math.max(
-				0,
-				physicalStart + itemSize / 2 - viewportSize / 2,
-			);
+			targetOffset = Math.max(0, itemStart + itemSize / 2 - viewportSize / 2);
 			break;
 
 		case "auto":
 		default: {
 			if (
-				physicalStart >= currentOffset
-				&& physicalEnd <= currentOffset + viewportSize
+				itemStart >= currentOffset
+				&& itemEnd <= currentOffset + viewportSize
 			) {
 				return currentOffset;
 			}
 
-			if (physicalStart < currentOffset) {
-				targetOffset =
-					reverse ?
-						Math.max(0, physicalEnd - viewportSize)
-					:	physicalStart;
+			if (itemStart < currentOffset) {
+				targetOffset = itemStart;
 			} else {
-				targetOffset =
-					reverse ? physicalStart : (
-						Math.max(0, physicalEnd - viewportSize)
-					);
+				targetOffset = Math.max(0, itemEnd - viewportSize);
 			}
+
 			break;
 		}
 	}
@@ -297,8 +242,8 @@ function calcScrollToOffset(
 }
 
 export {
-	calcRange,
-	calcScrollToOffset,
+	calcAxisRange,
+	calcScrollToAxisOffset,
 	getScrollElementOffset,
 	getScrollElementSize,
 	getSizeAtIndex,

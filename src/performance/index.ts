@@ -29,6 +29,14 @@ export {
 	type UseThrottledValueReturn,
 	useThrottledValue,
 } from "./useThrottle/useThrottledValue";
+export {
+	type UseVirtualGridReturn,
+	useVirtualGrid,
+} from "./useVirtualGrid/useVirtualGrid";
+export {
+	type UseVirtualListReturn,
+	useVirtualList,
+} from "./useVirtualList/useVirtualList";
 
 export type { DebounceOptions } from "./useDebounce/types";
 export type { RateLimitOptions } from "./useRateLimit/types";

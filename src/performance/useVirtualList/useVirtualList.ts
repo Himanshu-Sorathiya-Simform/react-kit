@@ -10,8 +10,8 @@ import {
 import { useEventListener } from "../../events/useEventListener/useEventListener.ts";
 import { getValue } from "../../shared/utils.ts";
 import { useDebouncedCallback } from "../useDebounce/useDebouncedCallback.ts";
+import { OffsetCache } from "../virtualShared/offsetCache.ts";
 import { DEFAULT_OVERSCAN, SCROLLING_DEBOUNCE_MS } from "./constants.ts";
-import { OffsetCache } from "./offsetCache.ts";
 import type {
 	ScrollToIndexOptions,
 	ScrollToOffsetOptions,
