@@ -171,7 +171,7 @@ function useDebouncedState<T>(
 ### Example 1: Master Hook Dynamic Function Swapping
 
 ```tsx
-import { useDebounce } from "@himanshu-sorathiya/react-kit";
+import { useDebounce } from "@himanshu-sorathiya/react-kit/performance";
 
 function DocumentActionBar() {
 	const { run, isPending } = useDebounce(1000);
@@ -202,7 +202,7 @@ If a user clicks **Save** and then clicks **Cancel** within the same 1000ms wind
 
 ```tsx
 import type { ChangeEvent } from "react";
-import { useDebounce } from "@himanshu-sorathiya/react-kit";
+import { useDebounce } from "@himanshu-sorathiya/react-kit/performance";
 
 function LiveSearchInput() {
 	const { run } = useDebounce(300, { maxWait: 1000 });
@@ -221,7 +221,7 @@ Every keystroke resets the 300ms trailing timer. Without `maxWait`, a user who n
 **`leading: true` — click-burst button protection**
 
 ```tsx
-import { useDebounce } from "@himanshu-sorathiya/react-kit";
+import { useDebounce } from "@himanshu-sorathiya/react-kit/performance";
 
 function SubmitButton() {
 	const { run } = useDebounce(2000, { leading: true, trailing: false });
@@ -239,7 +239,7 @@ The first click fires immediately. Any further clicks within the following 2000m
 **The safety-valve config fallback**
 
 ```tsx
-import { useDebounce } from "@himanshu-sorathiya/react-kit";
+import { useDebounce } from "@himanshu-sorathiya/react-kit/performance";
 
 function MisconfiguredButExplainedExample() {
 	// Attempting to silence BOTH edges of the debounce cycle...
@@ -260,7 +260,7 @@ See [The Config Fallback Safety Valve](#the-config-fallback-safety-valve) below 
 ### Example 3: `useDebouncedCallback`
 
 ```tsx
-import { useDebouncedCallback } from "@himanshu-sorathiya/react-kit";
+import { useDebouncedCallback } from "@himanshu-sorathiya/react-kit/performance";
 
 function SearchBox() {
 	const { debouncedFunc: handleSearch, isPending } = useDebouncedCallback(
@@ -281,7 +281,7 @@ function SearchBox() {
 
 ```tsx
 import { useState } from "react";
-import { useDebouncedValue } from "@himanshu-sorathiya/react-kit";
+import { useDebouncedValue } from "@himanshu-sorathiya/react-kit/performance";
 
 function ProductFilterField() {
 	const [query, setQuery] = useState("");
@@ -303,7 +303,7 @@ function ProductFilterField() {
 ### Example 5: `useDebouncedState`
 
 ```tsx
-import { useDebouncedState } from "@himanshu-sorathiya/react-kit";
+import { useDebouncedState } from "@himanshu-sorathiya/react-kit/performance";
 
 function NoteEditor() {
 	const [note, setNote, { isPending, flush, forceSetValue }] = useDebouncedState("", 800);

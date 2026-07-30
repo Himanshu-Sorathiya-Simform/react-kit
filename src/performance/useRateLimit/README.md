@@ -113,7 +113,7 @@ This means a single `useRateLimit` instance can act as one shared "rate-limited 
 A strict submit button that permits exactly 3 clicks every 10 seconds, then fully locks out until the window resets.
 
 ```tsx
-import { useRateLimit } from "@himanshu-sorathiya/react-kit";
+import { useRateLimit } from "@himanshu-sorathiya/react-kit/performance";
 
 function SubmitButton() {
 	const { run, remaining, isRateLimited } = useRateLimit(3, 10_000, {
@@ -140,7 +140,7 @@ export { SubmitButton };
 A chat composer where tokens refill smoothly and continuously, rather than in one lump reset.
 
 ```tsx
-import { useRateLimit } from "@himanshu-sorathiya/react-kit";
+import { useRateLimit } from "@himanshu-sorathiya/react-kit/performance";
 
 function ChatComposer() {
 	const { run, remaining, isRateLimited } = useRateLimit(5, 5_000, {
@@ -169,7 +169,7 @@ export { ChatComposer };
 Wrapping an API fetch call so the endpoint is automatically protected from being spammed.
 
 ```tsx
-import { useRateLimitedCallback } from "@himanshu-sorathiya/react-kit";
+import { useRateLimitedCallback } from "@himanshu-sorathiya/react-kit/performance";
 
 function SearchBox() {
 	const fetchResults = (query: string) => {

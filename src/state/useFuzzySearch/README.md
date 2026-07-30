@@ -168,7 +168,7 @@ Because `title` carries a `weight` of `3` versus the `1.5` on `author.name` and 
 
 ## Real-World Use Cases
 
-- Command palettes (⌘K-style quick action/navigation search)
+- Command palettes (K-style quick action/navigation search)
 - CRM contact and lead search across names, companies, and notes
 - Tagging and label systems where users filter by partial or shorthand tags
 - E-commerce product catalog filtering by name, SKU, brand, or category

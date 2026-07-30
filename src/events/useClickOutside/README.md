@@ -13,6 +13,10 @@ The standout feature, however, is **Multi-Target Support**. Instead of only acce
 ## Import
 
 ```tsx
+// Preferred
+import { useClickOutside } from "@himanshu-sorathiya/react-kit/events";
+
+// OR
 import { useClickOutside } from "@himanshu-sorathiya/react-kit";
 ```
 
@@ -41,7 +45,7 @@ A single ref is the most common case — toggle a boolean piece of state wheneve
 
 ```tsx
 import { useRef, useState } from "react";
-import { useClickOutside } from "@himanshu-sorathiya/react-kit";
+import { useClickOutside } from "@himanshu-sorathiya/react-kit/events";
 
 function Popover() {
 	const [isOpen, setIsOpen] = useState(true);
@@ -63,7 +67,7 @@ This is the critical pattern for any dropdown that's triggered by a separate but
 
 ```tsx
 import { useRef, useState } from "react";
-import { useClickOutside } from "@himanshu-sorathiya/react-kit";
+import { useClickOutside } from "@himanshu-sorathiya/react-kit/events";
 
 function DropdownMenu() {
 	const [isOpen, setIsOpen] = useState(false);

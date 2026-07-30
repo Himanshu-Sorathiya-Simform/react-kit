@@ -161,17 +161,17 @@ Note that `toggle`, `isExpanded`, and `collapse` all accept the full `order` obj
 `expandedIds` is computed as `[...expandedIds]` on **every render**, which means it is a brand-new array reference each time, even if its contents haven't changed. Avoid using it directly as a `useEffect` dependency:
 
 ```tsx
-// ❌ Avoid — new array reference every render can cause repeated effect runs
+//  Avoid — new array reference every render can cause repeated effect runs
 useEffect(() => {
 	doSomething();
 }, [expandedIds]);
 
-// ✅ Prefer a stable, derived primitive
+//  Prefer a stable, derived primitive
 useEffect(() => {
 	doSomething();
 }, [expandedIds.length]);
 
-// ✅ Or, if order/content matters, stringify it
+//  Or, if order/content matters, stringify it
 useEffect(() => {
 	doSomething();
 }, [JSON.stringify(expandedIds)]);
@@ -182,13 +182,13 @@ useEffect(() => {
 `expandedItems` is computed with `useMemo`, keyed on the `items` reference (plus `field` and `expandedIds`). Passing a freshly mapped/filtered array inline will produce a new reference on every render, defeating the memoization:
 
 ```tsx
-// ❌ Avoid — creates a new array every render, breaking the useMemo
+//  Avoid — creates a new array every render, breaking the useMemo
 const { expandedItems } = useExpansion({
 	items: data.map((d) => ({ id: d.id, label: d.name })),
 	field: "id",
 });
 
-// ✅ Prefer — memoize the derived array yourself before passing it in
+//  Prefer — memoize the derived array yourself before passing it in
 const items = useMemo(() => data.map((d) => ({ id: d.id, label: d.name })), [data]);
 const { expandedItems } = useExpansion({ items, field: "id" });
 ```

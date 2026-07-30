@@ -13,6 +13,10 @@ Manually wiring up `addEventListener` inside a raw `useEffect` is one of those t
 ## Import
 
 ```tsx
+// Preferred
+import { useEventListener } from "@himanshu-sorathiya/react-kit/events";
+
+// OR
 import { useEventListener } from "@himanshu-sorathiya/react-kit";
 ```
 
@@ -42,7 +46,7 @@ import { useEventListener } from "@himanshu-sorathiya/react-kit";
 Bind a global keyboard shortcut directly to `window` — perfect for closing a modal when the user presses `Escape`.
 
 ```tsx
-import { useEventListener } from "@himanshu-sorathiya/react-kit";
+import { useEventListener } from "@himanshu-sorathiya/react-kit/events";
 
 function Modal({ onClose }: { onClose: () => void }) {
 	useEventListener("keydown", (event) => {
@@ -61,7 +65,7 @@ Pass an array of events to unify mouse and touch logic on a specific DOM element
 
 ```tsx
 import { useRef } from "react";
-import { useEventListener } from "@himanshu-sorathiya/react-kit";
+import { useEventListener } from "@himanshu-sorathiya/react-kit/events";
 
 function DraggableCard() {
 	const cardRef = useRef<HTMLDivElement>(null);

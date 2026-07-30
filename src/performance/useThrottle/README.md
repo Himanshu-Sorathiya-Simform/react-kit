@@ -91,7 +91,7 @@ This gives you both instant feedback on the first interaction and a guarantee th
 | `leading`  | `boolean` | `true`  | Fire immediately on the first call of a new cooldown window.                 |
 | `trailing` | `boolean` | `true`  | Fire once more at the end of the window using the most recent function/args. |
 
-> ⚠️ If both `leading` and `trailing` are explicitly set to `false`, the hook falls back to `{ leading: true, trailing: true }`. See [Gotchas](#the-config-fallback-safety-valve) below.
+> ️ If both `leading` and `trailing` are explicitly set to `false`, the hook falls back to `{ leading: true, trailing: true }`. See [Gotchas](#the-config-fallback-safety-valve) below.
 
 ### `useThrottle` — Return Value
 
@@ -185,7 +185,7 @@ function useThrottledState<T>(
 `useThrottle` doesn't lock you into a single function — different event types can share the same throttle slot, and whichever one lands last before the trailing edge is the one that runs.
 
 ```tsx
-import { useThrottle } from "@himanshu-sorathiya/react-kit";
+import { useThrottle } from "@himanshu-sorathiya/react-kit/performance";
 
 function ActivityLogger() {
 	const { run, isPending } = useThrottle(1000);
@@ -216,7 +216,7 @@ export { ActivityLogger };
 Two `useThrottle` instances configured side-by-side to show strict leading-edge rate-limiting versus guaranteed trailing delivery.
 
 ```tsx
-import { useThrottle } from "@himanshu-sorathiya/react-kit";
+import { useThrottle } from "@himanshu-sorathiya/react-kit/performance";
 
 function RateLimitDemo() {
 	// Strict leading-edge: fires instantly, then ignores every call
@@ -242,7 +242,7 @@ export { RateLimitDemo };
 
 ```tsx
 import { useEffect } from "react";
-import { useThrottledCallback } from "@himanshu-sorathiya/react-kit";
+import { useThrottledCallback } from "@himanshu-sorathiya/react-kit/performance";
 
 function WindowSizeLogger() {
 	const { throttledFunc: handleResize } = useThrottledCallback(
@@ -265,7 +265,7 @@ export { WindowSizeLogger };
 
 ```tsx
 import { useState } from "react";
-import { useThrottledValue } from "@himanshu-sorathiya/react-kit";
+import { useThrottledValue } from "@himanshu-sorathiya/react-kit/performance";
 
 function HeavyPreview({ value }: { value: number }) {
 	// Stand-in for an expensive render (chart, canvas, map, etc.)
@@ -296,7 +296,7 @@ export { SliderDemo };
 ### Example 5: `useThrottledState` — Lazy Init, `flush`, and `forceSetValue`
 
 ```tsx
-import { useThrottledState } from "@himanshu-sorathiya/react-kit";
+import { useThrottledState } from "@himanshu-sorathiya/react-kit/performance";
 
 function expensiveComputation() {
 	console.log("computing initial score...");

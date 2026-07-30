@@ -202,10 +202,10 @@ Avoid passing an inline, freshly-created array directly into the hook, such as `
 Instead, memoize the derived array yourself (e.g., with `useMemo`) or keep it in state, and pass that stable reference into `usePagination`:
 
 ```tsx
-// ❌ Avoid: creates a new array reference on every render
+//  Avoid: creates a new array reference on every render
 const { pageItems } = usePagination(list.map((item) => item.value), 10);
 
-// ✅ Prefer: a stable, memoized reference
+//  Prefer: a stable, memoized reference
 const mappedList = useMemo(() => list.map((item) => item.value), [list]);
 const { pageItems } = usePagination(mappedList, 10);
 ```
