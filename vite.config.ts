@@ -13,6 +13,7 @@ export default defineConfig({
 				state: resolve(__dirname, "src/state/index.ts"),
 				performance: resolve(__dirname, "src/performance/index.ts"),
 				events: resolve(__dirname, "src/events/index.ts"),
+				storage: resolve(__dirname, "src/storage/index.ts"),
 			},
 			name: "HimanshuSorathiyaReactKit",
 			formats: ["es"],

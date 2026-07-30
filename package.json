@@ -29,11 +29,15 @@
 			"types": "./dist/events.d.ts",
 			"import": "./dist/events.js"
 		},
+		"./storage": {
+			"types": "./dist/storage.d.ts",
+			"import": "./dist/storage.js"
+		},
 		"./styles.css": "./dist/index.css"
 	},
 	"scripts": {
 		"dev": "vite",
-		"build": "vite build && dts-bundle-generator --project tsconfig.app.json -o dist/index.d.ts src/index.ts && dts-bundle-generator --project tsconfig.app.json -o dist/ui.d.ts src/ui/index.ts && dts-bundle-generator --project tsconfig.app.json -o dist/state.d.ts src/state/index.ts && dts-bundle-generator --project tsconfig.app.json -o dist/performance.d.ts src/performance/index.ts && dts-bundle-generator --project tsconfig.app.json -o dist/events.d.ts src/events/index.ts",
+		"build": "vite build && dts-bundle-generator --project tsconfig.app.json -o dist/index.d.ts src/index.ts && dts-bundle-generator --project tsconfig.app.json -o dist/ui.d.ts src/ui/index.ts && dts-bundle-generator --project tsconfig.app.json -o dist/state.d.ts src/state/index.ts && dts-bundle-generator --project tsconfig.app.json -o dist/performance.d.ts src/performance/index.ts && dts-bundle-generator --project tsconfig.app.json -o dist/events.d.ts src/events/index.ts && dts-bundle-generator --project tsconfig.app.json -o dist/storage.d.ts src/storage/index.ts",
 		"lint": "eslint .",
 		"preview": "vite preview",
 		"format": "prettier . --write"
