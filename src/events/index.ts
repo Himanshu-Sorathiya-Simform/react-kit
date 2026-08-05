@@ -10,6 +10,7 @@ export { type UseKeyReturn, useKey } from "./useKey/useKey";
 
 export type {
 	ClickOutsideEvent,
+	ClickOutsideEventName,
 	ClickOutsideTarget,
 	ClickOutsideTargetRef,
 	UseClickOutsideOptions,
@@ -19,4 +20,4 @@ export type {
 	TargetType,
 	UseEventListenerOptions,
 } from "./useEventListener/types";
-export type { BaseKeyOptions, KeyEventType, KeyOptions } from "./useKey/types";
+export type { KeyEventType, UseKeyBaseOptions, UseKeyOptions } from "./useKey/types";

@@ -1,40 +1,80 @@
 # `useKey`
 
-A lightweight, fully type-safe React hook for binding keyboard shortcuts to your components — with automatic cleanup, modifier key support, input-safety guards, and key-repeat protection built in.
-
----
+A lightweight, fully type-safe React hook for binding keyboard shortcuts to your components — with automatic cleanup, modifier key support, input-safety guards, IME-composition safety, and key-repeat protection built in.
 
 ## Motivation (Why this hook?)
 
-Wiring up a keyboard shortcut by hand with a raw `useEffect` looks simple at first, but it quietly accumulates edge cases: you need to remember to remove the listener on unmount, guard against stale closures capturing an old version of your handler, avoid firing the shortcut while the user is typing in a form field, and — if you want a "press-and-hold-safe" shortcut like a play/pause toggle — manually track whether the key is already down.
+Wiring up a keyboard shortcut by hand with a raw `useEffect` looks simple at first, but it quietly accumulates edge cases: you need to remember to remove the listener on unmount, guard against stale closures capturing an old version of your handler, avoid firing the shortcut while the user is typing in a form field or composing text via an IME, and — if you want a "press-and-hold-safe" shortcut like a play/pause toggle — account for the browser firing repeated events while a key is held.
 
 `useKey` handles all of that for you:
 
-- **Automatic cleanup** — the listener is added and removed for you inside a single `useEffect`, so you never leak listeners across renders or unmounts.
-- **Always-fresh handler, no stale closures** — your `handler` is stored in a `ref` and synced via `useLayoutEffect` on every render, so the hook always calls your *latest* handler without needing to re-attach the DOM listener or list `handler` in a dependency array.
-- **Modifier key support** — declaratively require `ctrlKey`, `shiftKey`, `altKey`, and/or `metaKey` to be held (or *not* held) for the shortcut to fire.
+- **Automatic cleanup** — the listener is added and removed for you, so you never leak listeners across renders or unmounts.
+- **Always-fresh handler, no stale closures** — built on top of [`useEventListener`](../useEventListener/README.md), the hook leverages React's `useEffectEvent` to always call your *latest* handler without needing to re-attach the DOM listener or list `handler` in a dependency array.
+- **Modifier key support** — declaratively require `ctrlKey`, `shiftKey`, `altKey`, and/or `metaKey` to be held for the shortcut to fire.
 - **Safe input handling** — with `ignoreWhenFocusedInInputs`, the hook automatically ignores key presses while the user is focused in an `<input>`, `<textarea>`, `<select>`, or any `contenteditable` element, so you don't accidentally hijack normal typing.
+- **IME-composition safe** — ignores keystrokes fired while a user is composing text via an IME (e.g. typing pinyin or romaji before a CJK character is confirmed), so shortcuts don't misfire or interfere with the IME's own confirmation key.
 - **Held-key repeat prevention** — with `preventRepeat`, the hook suppresses the flood of repeated `keydown` events fired by the browser while a key is held down, only firing your handler once per physical press.
 - **Flexible targeting** — bind to `window` (the default), any DOM element, or a React `RefObject`, so shortcuts can be global or scoped to a specific component.
 
 The result: declarative, predictable keyboard shortcuts with a single hook call, instead of hand-rolled `useEffect` boilerplate scattered across your codebase.
 
----
-
-## Import Syntax
+## Import
 
 ```tsx
 // Preferred
-import { useKey, type UseKeyReturn, type KeyOptions } from "@himanshu-sorathiya/react-kit/events";
-// Or
-import { useKey, type UseKeyReturn, type KeyOptions } from "@himanshu-sorathiya/react-kit";
+import { useKey } from "@himanshu-sorathiya/react-kit/events";
+
+// OR
+import { useKey } from "@himanshu-sorathiya/react-kit";
 ```
 
----
+## API Reference
 
-## Basic Usage
+### Arguments
 
-A minimal example: closing a modal or dropdown when the user presses `Escape`.
+| Argument  | Type                          | Required | Description                                                                                                   |
+| --------- | ------------------------------ | -------- | ------------------------------------------------------------------------------------------------------------- |
+| `key`     | `string`                       | Yes      | The key to listen for, matched against `KeyboardEvent.key`. **Case-insensitive** — `"Escape"`, `"escape"`, and `"ESCAPE"` are all treated the same. |
+| `handler` | `(event: KeyboardEvent) => void` | Yes    | Callback invoked when the key (and any required modifiers) match. Doesn't need to be memoized — the latest `handler` is always used, and changing it does not re-attach the listener. |
+| `options` | `UseKeyOptions`                 | No     | Configuration object described below.                                                                          |
+
+### `options` shape
+
+| Property                    | Type                                                          | Default     | Description                                                                                     |
+| ---------------------------- | -------------------------------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------- |
+| `enabled`                    | `boolean`                                                      | `true`      | Toggle the shortcut on or off. When `false`, the underlying listener is fully detached from the DOM rather than left attached and short-circuited — zero background cost while disabled. |
+| `preventDefault`             | `boolean`                                                      | `true`      | Calls `event.preventDefault()` when the handler fires, applied before `handler` is called. |
+| `stopPropagation`            | `boolean`                                                      | `true`      | Calls `event.stopPropagation()` when the handler fires, applied before `handler` is called. |
+| `capture`                    | `boolean`                                                      | `false`     | Whether the listener is invoked during the capture phase. See Gotchas below for when you'd want to change this. |
+| `eventType`                  | `"keydown" \| "keyup" \| "keypress"`                            | `"keydown"` | Which keyboard event to listen for.                                                              |
+| `preventRepeat`              | `boolean`                                                      | `false`     | Suppresses the handler from firing repeatedly while the key is held down, based on the native `KeyboardEvent.repeat` property. Not valid with `eventType: "keyup"` — enforced at the type level, since keyup events are never marked as repeating. |
+| `ignoreWhenFocusedInInputs`  | `boolean`                                                      | `true`      | Skips the handler when the event target is an `<input>`, `<textarea>`, `<select>`, or a `contenteditable` element. |
+| `ctrlKey`                    | `boolean`                                                      | `false`     | Whether the Ctrl key must be held for the shortcut to match.                                     |
+| `shiftKey`                   | `boolean`                                                      | `false`     | Whether the Shift key must be held for the shortcut to match.                                    |
+| `altKey`                     | `boolean`                                                      | `false`     | Whether the Alt (or Option) key must be held for the shortcut to match.                          |
+| `metaKey`                    | `boolean`                                                      | `false`     | Whether the Meta key (Cmd on macOS, Windows key on Windows) must be held for the shortcut to match. |
+| `target`                     | `Window \| Document \| HTMLElement \| RefObject<HTMLElement \| null> \| null` | `window` | The element the listener is attached to. A React `RefObject` is strongly preferred for scoping a shortcut to a specific component; `window`, `document`, or a plain element also work. |
+
+> **Note on modifiers:** matching is exact against all four flags at once. If you don't set `ctrlKey: true`, the shortcut will *not* fire while Ctrl is held, even if the base key matches. See Example 2 below for the pattern this implies for cross-platform shortcuts.
+
+### Return Value
+
+The hook returns a `stop` function (`() => void`) that lets you manually detach the current listener before the component unmounts.
+
+```tsx
+const stop = useKey("Escape", handler);
+
+// Later...
+stop(); // Manually removes the listener
+```
+
+This detaches the *current* listener only — it's not a permanent "off" switch. If `eventType`, `enabled`, `target`, or `capture` change afterward, a new listener can be attached again on the next render. Changing `key` or any modifier flag does *not* cause a re-attach — those are picked up fresh on the next keystroke without the listener ever being torn down.
+
+## Advanced Usage & Examples
+
+### Example 1: Basic Escape-to-Close
+
+The most common case — closing a modal or dropdown when the user presses `Escape`.
 
 ```tsx
 import { useKey } from "@himanshu-sorathiya/react-kit/events";
@@ -42,63 +82,26 @@ import { useKey } from "@himanshu-sorathiya/react-kit/events";
 function Modal({ onClose }: { onClose: () => void }) {
 	useKey("Escape", onClose);
 
-	return <div role="dialog">{/* modal content */}</div>;
+	return <div role="dialog">Modal content</div>;
 }
 ```
 
-That's it — no manual `useEffect`, no manual cleanup, no stale closure concerns.
+### Example 2: Cross-Platform Modifier Shortcut (Command Palette)
 
----
-
-## API Reference
-
-### Parameters
-
-| Parameter | Type | Required | Description |
-|---|---|---|---|
-| `key` | `string` | Yes | The key to listen for, matched against `KeyboardEvent.key`. **Case-insensitive** — `"Escape"`, `"escape"`, and `"ESCAPE"` are all treated the same. |
-| `handler` | `(e: KeyboardEvent) => void` | Yes | Callback invoked when the key (and any required modifiers) match. Always receives the live `KeyboardEvent`. Safe to pass an inline arrow function — it's stored in a ref internally, so it won't cause the listener to be re-attached on every render. |
-| `options` | `KeyOptions` | No | Configuration object described below. |
-
-### `KeyOptions`
-
-| Option | Type | Default | Description |
-|---|---|---|---|
-| `enabled` | `boolean` | `true` | Toggle the shortcut on or off without unmounting the hook. When `false`, the listener stays attached but the handler is skipped. |
-| `preventDefault` | `boolean` | `true` | Calls `e.preventDefault()` when the handler fires. |
-| `stopPropagation` | `boolean` | `true` | Calls `e.stopPropagation()` when the handler fires. |
-| `eventType` | `"keydown" \| "keyup" \| "keypress"` | `"keydown"` | Which keyboard event to listen for. |
-| `preventRepeat` | `boolean` | `false` | Suppresses the handler from firing repeatedly while the key is held down. **Not available when `eventType` is `"keyup"`** — enforced at the type level. |
-| `ignoreWhenFocusedInInputs` | `boolean` | `true` | Skips the handler when the event target is an `<input>`, `<textarea>`, `<select>`, or a `contenteditable` element. |
-| `ctrlKey` | `boolean` | `false` | Whether the Ctrl key must be held for the shortcut to match. |
-| `shiftKey` | `boolean` | `false` | Whether the Shift key must be held for the shortcut to match. |
-| `altKey` | `boolean` | `false` | Whether the Alt (or Option) key must be held for the shortcut to match. |
-| `metaKey` | `boolean` | `false` | Whether the Meta key (Cmd on macOS, Windows key on Windows) must be held for the shortcut to match. |
-| `target` | `Window \| HTMLElement \| RefObject<HTMLElement>` | `window` | The element the listener is attached to. **A React `RefObject` is strongly preferred** for scoping a shortcut to a specific component; a plain DOM element (including `window`) also works. |
-
-> **Note on modifiers:** modifier matching is exact. If you don't set `ctrlKey: true`, the shortcut will *not* fire while Ctrl is held — even if the base key matches. Set every modifier your shortcut actually requires.
-
----
-
-## Advanced Usage & Examples
-
-### Modifier Key Combo (Command Palette)
-
-Open a global command palette with `Ctrl + K` (or `Cmd + K` on macOS via `metaKey`):
+Since modifier matching is exact, there's no built-in cross-platform "Mod" key (Cmd on macOS, Ctrl elsewhere). Register the shortcut twice instead, once per modifier — it's cheap, and each call can independently have its own options if you ever need that:
 
 ```tsx
 import { useKey } from "@himanshu-sorathiya/react-kit/events";
 
 function CommandPaletteTrigger({ onOpen }: { onOpen: () => void }) {
-	useKey("k", onOpen, { ctrlKey: true, metaKey: true });
+	useKey("k", onOpen, { ctrlKey: true });
+	useKey("k", onOpen, { metaKey: true });
 
 	return null;
 }
 ```
 
-> Since modifier matching is exact, combining `ctrlKey: true` and `metaKey: true` requires *both* to be pressed simultaneously. If you want the shortcut to work with *either* Ctrl (Windows/Linux) or Cmd (macOS), use two separate `useKey` calls instead — one per modifier.
-
-### Preventing Key Repeat (Play/Pause Media)
+### Example 3: Preventing Key Repeat (Play/Pause Media)
 
 Toggle playback with the spacebar, without the handler firing dozens of times while the key is held:
 
@@ -112,7 +115,7 @@ function VideoPlayer({ onTogglePlay }: { onTogglePlay: () => void }) {
 }
 ```
 
-### Scoping to a Specific Target
+### Example 4: Scoping to a Specific Target
 
 Bind a hotkey so it only fires when a specific element — like a canvas or custom editor — is focused, by passing a `RefObject` as `target`:
 
@@ -129,7 +132,7 @@ function CanvasEditor({ onDelete }: { onDelete: () => void }) {
 }
 ```
 
-### Form/Input Safety
+### Example 5: Form/Input Safety
 
 By default, `ignoreWhenFocusedInInputs` prevents the handler from firing while the user is typing in an `<input>`, `<textarea>`, or `contenteditable` element — so a global shortcut like `"s"` for "save" won't hijack normal typing:
 
@@ -146,29 +149,39 @@ function SaveShortcut({ onSave }: { onSave: () => void }) {
 
 Set `ignoreWhenFocusedInInputs: false` if you deliberately want the shortcut to work even while an input is focused.
 
----
-
 ## Real-World Use Cases
 
 - Closing modals, dropdowns, or popovers on `Escape`
 - Navigating an image carousel with the arrow keys
-- Triggering a global search or command palette with `Ctrl/Cmd + K`
+- Triggering a global search or command palette with `Ctrl`/`Cmd + K`
 - Play/pause toggling for video or audio players with the spacebar
 - Muting or unmuting audio with a dedicated hotkey
 - Navigating up and down a list or menu with arrow keys
-- Triggering a manual save with `Ctrl/Cmd + S`
-- Undo/redo actions with `Ctrl/Cmd + Z` and `Ctrl/Cmd + Shift + Z`
-
----
+- Triggering a manual save with `Ctrl`/`Cmd + S`
+- Undo/redo actions with `Ctrl`/`Cmd + Z` and `Ctrl`/`Cmd + Shift + Z`
+- Commonly paired with [`useClickOutside`](../useClickOutside/README.md) to dismiss the same UI on both `Escape` and an outside click
 
 ## Gotchas & Edge Cases
 
-- **SSR Safe.** This hook safely checks for the `window` object before attempting to bind events or fall back to default targets. You can safely render components using `useKey` in Next.js, Remix, or other server-side rendered frameworks without worrying about `ReferenceError: window is not defined`.
+- **SSR Safe:** On the server, `window` is `undefined`, so the resolved target safely falls back to `null` and the DOM-binding logic is skipped entirely. No errors are thrown during server-side rendering or static generation.
 
-- **`keypress` Is Deprecated.** The `keypress` event is deprecated in modern browsers and should be avoided. Use `eventType: "keydown"` instead. If you were relying on `keypress`'s non-repeating behavior for a single key press, replicate it with:
+- **IME Composition Safety:** Keystrokes fired while a user is composing text via an IME — for example, typing pinyin or romaji before a CJK character is confirmed — are ignored entirely, before any key or modifier matching happens. Without this, a shortcut bound to a common confirmation key like `Enter` could misfire mid-composition or interfere with the IME's own confirmation step, making the affected component unusable for Chinese, Japanese, or Korean input. This is automatic and not configurable.
+
+- **`preventDefault`/`stopPropagation` Run Before Your Handler:** Both are applied before `handler` is called, not after, so the behavior you configured still takes effect even if `handler` throws an error.
+
+- **Why does `capture` default to `false` here (unlike `useClickOutside`)?** If a descendant element calls `event.stopPropagation()` on a keydown/keyup event, a bubble-phase listener like this one's default won't see it, and the shortcut will silently stop firing. This is less commonly an issue for keyboard shortcuts than for click-outside detection, so the default favors the more familiar bubble-phase behavior — but if you have a global hotkey that mysteriously stops working near a specific component, try `capture: true`.
+
+- **Repeat Detection Relies on the Native `KeyboardEvent.repeat` Flag:** `preventRepeat` doesn't track key state manually — it reads the browser's own repeat flag, which is simpler and accurate for the single-key/combo shortcuts this hook targets. One known limitation: there's a narrow, currently unfixed Chromium bug where holding several *different* keys simultaneously and releasing one can cause `.repeat` to misreport for the others still held. This doesn't affect the common case of a single key or modifier combo held on its own.
+
+- **`keypress` Is Deprecated:** The `keypress` event is deprecated in modern browsers and has inconsistent behavior for non-printable keys. It's still supported here for backwards compatibility, but prefer `eventType: "keydown"` for new code. If you were relying on `keypress`'s non-repeating behavior for a single press, replicate it with:
 
 ```tsx
 useKey("Enter", handleSubmit, { eventType: "keydown", preventRepeat: true });
 ```
 
----
+- **Development-Only Warnings:** In development, the hook logs a `console.warn` if `key` resolves to an empty string, since such a listener can never match anything. This has no effect in production builds.
+
+## See Also
+
+- [`useEventListener`](../useEventListener/README.md) — the foundational event-subscription hook that powers `useKey`.
+- [`useClickOutside`](../useClickOutside/README.md) — commonly used alongside this hook to dismiss the same UI on both a keyboard shortcut and an outside click.
