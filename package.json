@@ -85,5 +85,8 @@
 		"url": "git+https://github.com/Himanshu-Sorathiya-Simform/react-kit.git"
 	},
 	"license": "MIT",
-	"author": "Himanshu Sorathiya"
+	"author": "Himanshu Sorathiya",
+	"dependencies": {
+		"@himanshu-sorathiya/datetime": "^1.1.0"
+	}
 }
