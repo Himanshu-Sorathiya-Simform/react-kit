@@ -1,10 +1,10 @@
 export {
-	useLocalStorage,
 	type UseLocalStorageReturn,
+	useLocalStorage,
 } from "./useLocalStorage/useLocalStorage";
 export {
-	useSessionStorage,
 	type UseSessionStorageReturn,
+	useSessionStorage,
 } from "./useSessionStorage/useSessionStorage";
 
 export {

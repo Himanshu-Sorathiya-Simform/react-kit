@@ -1,218 +1,65 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useEventListener } from "../../events";
-import { defaultSerializer } from "../../shared/storageShared/serializers";
-import type {
-	StorageCustomEventDetail,
-	StorageSerializer,
-} from "../../shared/storageShared/types";
-import { SESSION_STORAGE_CUSTOM_EVENT } from "./constants";
-import type { UseSessionStorageOptions } from "./types";
+import { createStorageAccessor } from "../../shared/storageShared/getStorage.ts";
 import {
-	dispatchSessionStorageEvent,
-	getSessionStorage,
-	readFromStorage,
-} from "./utils";
+	type StorageEngineConfig,
+	type UseStorageEngineReturn,
+	useStorageEngine,
+} from "../../shared/storageShared/useStorageEngine.ts";
+import { SESSION_STORAGE_CUSTOM_EVENT } from "./constants.ts";
+import type { UseSessionStorageOptions } from "./types.ts";
 
-interface UseSessionStorageReturn<T> {
-	value: T | undefined;
-	setValue: (valueOrUpdater: T | ((prev: T | undefined) => T)) => void;
-	removeValue: () => void;
-	isHydrated: boolean;
-	error: Error | null;
-}
+/**
+ * Static per-storage-type wiring for `useStorageEngine`. See the identical
+ * comment in `useLocalStorage.ts` for why this lives at module scope
+ * rather than inside the hook body.
+ *
+ * `nativeStorageEventSupported: false`: sessionStorage isn't shared across
+ * tabs, so the native `storage` event has no cross-tab sync role here.
+ * (The one exception — same-origin iframes sharing a single tab's
+ * top-level browsing context — is deliberately out of scope for this
+ * hook.)
+ */
+const ENGINE_CONFIG: StorageEngineConfig = {
+	hookLabel: "react-kit:use-session-storage",
+	getStorage: createStorageAccessor("sessionStorage"),
+	customEventName: SESSION_STORAGE_CUSTOM_EVENT,
+	nativeStorageEventSupported: false,
+};
 
+/**
+ * Reads and writes a `sessionStorage` key, kept in sync with React state.
+ *
+ * - Scoped to the current tab: cleared when the tab closes, and not
+ *   shared with other tabs (unlike `useLocalStorage`).
+ * - Stays in sync with every component in the current tab watching the
+ *   same key — see {@link UseSessionStorageOptions.sameInstanceSync}.
+ * - Safe under SSR: on the server, and during the client's hydration
+ *   render, `value` is always `initialValue`. The real stored value is
+ *   only read client-side, immediately after hydration.
+ *
+ * @typeParam T - The type of value being stored. Defaults to `unknown` if
+ * omitted — pass an explicit type argument for anything beyond ad-hoc use.
+ * @param key - The `sessionStorage` key to read and write. Changing this
+ * on a later render isn't supported; the hook warns (dev console +
+ * `onError`) and keeps using the original key if you do.
+ * @param initialValue - Used when nothing is stored yet, as the value
+ * shown before hydration completes, and as what `removeValue` resets to.
+ * @param options - See {@link UseSessionStorageOptions}.
+ * @returns `{ value, setValue, removeValue, isHydrated, error }`.
+ *
+ * @example
+ * ```tsx
+ * const { value: draft, setValue: setDraft } = useSessionStorage("draft-comment", "");
+ *
+ * <textarea value={draft ?? ""} onChange={(e) => setDraft(e.target.value)} />
+ * ```
+ */
 function useSessionStorage<T = unknown>(
 	key: string,
 	initialValue?: T,
 	options: UseSessionStorageOptions<T> = {},
-): UseSessionStorageReturn<T> {
-	const {
-		serializer = defaultSerializer as StorageSerializer<T>,
-		initializeWithValue = true,
-		sameInstanceSync = true,
-	} = options;
-
-	const [stableKey] = useState<string>(() => key);
-
-	const stableKeyRef = useRef(stableKey);
-
-	const keyChanged = key !== stableKey;
-
-	const sameTabEventName = `${SESSION_STORAGE_CUSTOM_EVENT}:${stableKey}`;
-
-	const instanceIdRef = useRef<symbol>(Symbol());
-
-	const serializerRef = useRef(serializer);
-
-	useEffect(() => {
-		serializerRef.current = serializer;
-	}, [serializer]);
-
-	const [value, setValueState] = useState<T | undefined>(() => {
-		if (!initializeWithValue) return undefined;
-
-		const storage = getSessionStorage();
-
-		if (!storage) return initialValue;
-
-		const { value: stored } = readFromStorage(
-			storage,
-			key,
-			initialValue,
-			serializer,
-		);
-		return stored;
-	});
-
-	const valueRef = useRef(value);
-
-	useEffect(() => {
-		valueRef.current = value;
-	}, [value]);
-
-	const [isHydrated, setIsHydrated] = useState<boolean>(
-		initializeWithValue && typeof window !== "undefined",
-	);
-
-	const [error, setError] = useState<Error | null>(null);
-
-	useEffect(() => {
-		if (!keyChanged) return;
-
-		const keyChangeError = new Error(
-			`[react-kit:use-session-storage] Changing the storage key at runtime is not supported. `
-				+ `Still using original key: "${stableKeyRef.current}". Received new key: "${key}".`,
-		);
-
-		console.warn(keyChangeError.message);
-
-		setError(keyChangeError);
-	}, [key, keyChanged]);
-
-	useEffect(() => {
-		if (initializeWithValue) return;
-
-		const storage = getSessionStorage();
-		const { value: stored, error: readError } =
-			storage !== null ?
-				readFromStorage(
-					storage,
-					stableKeyRef.current,
-					initialValue,
-					serializerRef.current,
-				)
-			:	{ value: initialValue, error: null };
-
-		if (readError) {
-			console.warn(
-				`[react-kit:use-session-storage] Failed to read key "${stableKeyRef.current}" from sessionStorage:`,
-				readError.message,
-			);
-
-			setError(readError);
-		}
-
-		setValueState(stored);
-		setIsHydrated(true);
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [initializeWithValue]);
-
-	const setValue = useCallback(
-		(valueOrUpdater: T | ((prev: T | undefined) => T)): void => {
-			const storage = getSessionStorage();
-			if (!storage) return;
-
-			const prev = valueRef.current;
-			const next =
-				typeof valueOrUpdater === "function" ?
-					(valueOrUpdater as (prev: T | undefined) => T)(prev)
-				:	valueOrUpdater;
-
-			try {
-				const serialized = serializerRef.current.serialize(next);
-				storage.setItem(stableKeyRef.current, serialized);
-
-				setValueState(next);
-				setError(null);
-
-				if (sameInstanceSync) {
-					dispatchSessionStorageEvent(
-						stableKeyRef.current,
-						serialized,
-						instanceIdRef.current,
-					);
-				}
-			} catch (err) {
-				const writeError =
-					err instanceof Error ? err : new Error(String(err));
-				console.warn(
-					`[react-kit:use-session-storage] Failed to write key "${stableKeyRef.current}" to sessionStorage:`,
-					writeError.message,
-				);
-
-				setError(writeError);
-			}
-		},
-		[sameInstanceSync],
-	);
-
-	const removeValue = useCallback((): void => {
-		const storage = getSessionStorage();
-
-		if (!storage) return;
-
-		storage.removeItem(stableKeyRef.current);
-
-		setValueState(initialValue);
-		setError(null);
-
-		if (sameInstanceSync) {
-			dispatchSessionStorageEvent(
-				stableKeyRef.current,
-				null,
-				instanceIdRef.current,
-			);
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [sameInstanceSync]);
-
-	useEventListener(
-		sameTabEventName,
-		(event: Event) => {
-			if (!sameInstanceSync) return;
-
-			const customEvent = event as CustomEvent<StorageCustomEventDetail>;
-			const detail = customEvent.detail;
-
-			if (detail.instanceId === instanceIdRef.current) return;
-
-			if (detail.value === null) {
-				setValueState(initialValue);
-				setError(null);
-				return;
-			}
-
-			try {
-				const parsed = serializerRef.current.deserialize(detail.value);
-
-				setValueState(parsed as T);
-				setError(null);
-			} catch (err) {
-				const syncError =
-					err instanceof Error ? err : new Error(String(err));
-				console.warn(
-					`[react-kit:use-session-storage] Failed to deserialize same-tab update for key "${stableKeyRef.current}":`,
-					syncError.message,
-				);
-
-				setValueState(initialValue);
-				setError(syncError);
-			}
-		},
-		{ target: typeof window === "undefined" ? null : window },
-	);
-
-	return { value, setValue, removeValue, isHydrated, error };
+): UseStorageEngineReturn<T> {
+	return useStorageEngine(ENGINE_CONFIG, key, initialValue, options);
 }
 
-export { useSessionStorage, type UseSessionStorageReturn };
+export { useSessionStorage };
+export type { UseStorageEngineReturn as UseSessionStorageReturn };
