@@ -1,34 +1,48 @@
-export { type UseDebounceReturn, useDebounce } from "./useDebounce/useDebounce";
 export {
 	type UseDebouncedCallbackReturn,
 	useDebouncedCallback,
-} from "./useDebounce/useDebouncedCallback";
+} from "./useDebouncer/useDebouncedCallback";
 export {
 	type UseDebouncedStateReturn,
 	useDebouncedState,
-} from "./useDebounce/useDebouncedState";
+} from "./useDebouncer/useDebouncedState";
 export {
 	type UseDebouncedValueReturn,
 	useDebouncedValue,
-} from "./useDebounce/useDebouncedValue";
-export { type UseRateLimitReturn, useRateLimit } from "./useRateLimit/useRateLimit";
+} from "./useDebouncer/useDebouncedValue";
+export { type UseDebouncerReturn, useDebouncer } from "./useDebouncer/useDebouncer";
+
 export {
 	type UseRateLimitedCallbackReturn,
 	useRateLimitedCallback,
-} from "./useRateLimit/useRateLimitedCallback";
-export { type UseThrottleReturn, useThrottle } from "./useThrottle/useThrottle";
+} from "./useRateLimiter/useRateLimitedCallback";
+export {
+	type UseRateLimitedStateReturn,
+	useRateLimitedState,
+} from "./useRateLimiter/useRateLimitedState";
+export {
+	type UseRateLimitedValueReturn,
+	useRateLimitedValue,
+} from "./useRateLimiter/useRateLimitedValue";
+export {
+	type UseRateLimiterReturn,
+	useRateLimiter,
+} from "./useRateLimiter/useRateLimiter";
+
 export {
 	type UseThrottledCallbackReturn,
 	useThrottledCallback,
-} from "./useThrottle/useThrottledCallback";
+} from "./useThrottler/useThrottledCallback";
 export {
 	type UseThrottledStateReturn,
 	useThrottledState,
-} from "./useThrottle/useThrottledState";
+} from "./useThrottler/useThrottledState";
 export {
 	type UseThrottledValueReturn,
 	useThrottledValue,
-} from "./useThrottle/useThrottledValue";
+} from "./useThrottler/useThrottledValue";
+export { type UseThrottlerReturn, useThrottler } from "./useThrottler/useThrottler";
+
 export {
 	type UseVirtualGridReturn,
 	useVirtualGrid,
@@ -43,9 +57,9 @@ export type {
 	ScrollAlign,
 	ScrollToOffsetOptions,
 } from "../shared/virtualShared/types";
-export type { DebounceOptions } from "./useDebounce/types";
-export type { RateLimitOptions } from "./useRateLimit/types";
-export type { ThrottleOptions } from "./useThrottle/types";
+export type { DebounceOptions } from "./useDebouncer/types";
+export type { RateLimitOptions } from "./useRateLimiter/types";
+export type { ThrottleOptions } from "./useThrottler/types";
 export type {
 	ScrollToCellOptions,
 	ScrollToColumnOptions,

@@ -7,7 +7,7 @@ import {
 	useState,
 } from "react";
 import { useEventListener } from "../../events/useEventListener/useEventListener.ts";
-import { useDebouncedCallback } from "../useDebounce/useDebouncedCallback.ts";
+import { useDebouncedCallback } from "../useDebouncer/useDebouncedCallback.ts";
 import {
 	DEFAULT_OVERSCAN_COLS,
 	DEFAULT_OVERSCAN_ROWS,
