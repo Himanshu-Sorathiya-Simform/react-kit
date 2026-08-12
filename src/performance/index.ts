@@ -1,3 +1,5 @@
+export { type UseBatcherReturn, useBatcher } from "./useBatcher/useBatcher";
+
 export {
 	type UseDebouncedCallbackReturn,
 	useDebouncedCallback,
@@ -57,6 +59,7 @@ export type {
 	ScrollAlign,
 	ScrollToOffsetOptions,
 } from "../shared/virtualShared/types";
+export type { BatchOptions } from "./useBatcher/types";
 export type { DebounceOptions } from "./useDebouncer/types";
 export type { RateLimitOptions } from "./useRateLimiter/types";
 export type { ThrottleOptions } from "./useThrottler/types";
