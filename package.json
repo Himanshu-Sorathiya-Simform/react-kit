@@ -33,7 +33,6 @@
 			"types": "./dist/storage.d.ts",
 			"import": "./dist/storage.js"
 		},
-		"./styles.css": "./dist/index.css"
 	},
 	"scripts": {
 		"dev": "vite",
@@ -64,9 +63,6 @@
 		"typescript-eslint": "^8.59.2",
 		"vite": "^8.1.4"
 	},
-	"sideEffects": [
-		"**/*.css"
-	],
 	"keywords": [
 		"react",
 		"react-kit",
