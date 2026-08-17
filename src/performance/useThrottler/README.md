@@ -413,4 +413,4 @@ In non-production builds (`process.env.NODE_ENV !== "production"`), this suite l
 
 - [`useDebouncer`](../useDebouncer/README.md) — the debounce-based counterpart to this suite, for cases where you want to wait for a pause in activity rather than rate-limit activity as it happens.
 - [`useRateLimiter`](../useRateLimiter/README.md) — a stricter accept-or-reject alternative when you need a hard cap on how many times something can run per window, rather than reshaping *when* it runs.
-- [`useBatcher`](../useBatcher/README.md) — groups every call into a batch instead of discarding intermediate ones, for when you need all the accumulated data, not just the latest value.
+- [`useBatcher`](../useBatcher/README.md) — groups every call into a batch instead of discarding intermediate ones, for when you need all the accumulated data, not just the most recent per window.
