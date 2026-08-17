@@ -46,6 +46,19 @@ export {
 export { type UseThrottlerReturn, useThrottler } from "./useThrottler/useThrottler";
 
 export {
+	type UseIntersectionObserverReturn,
+	useIntersectionObserver,
+} from "./useIntersectionObserver/useIntersectionObserver";
+export {
+	type UseMutationObserverReturn,
+	useMutationObserver,
+} from "./useMutationObserver/useMutationObserver";
+export {
+	type UseResizeObserverReturn,
+	useResizeObserver,
+} from "./useResizeObserver/useResizeObserver";
+
+export {
 	type UseVirtualGridReturn,
 	useVirtualGrid,
 } from "./useVirtualGrid/useVirtualGrid";
@@ -61,7 +74,22 @@ export type {
 } from "../shared/virtualShared/types";
 export type { BatchOptions } from "./useBatcher/types";
 export type { DebounceOptions } from "./useDebouncer/types";
+export type {
+	IntersectionTargetInput,
+	UseIntersectionObserverOptions,
+} from "./useIntersectionObserver/types";
+export type {
+	MutationTargetInput,
+	UseMutationObserverOptions,
+} from "./useMutationObserver/types";
 export type { RateLimitOptions } from "./useRateLimiter/types";
+export type {
+	ObservedSize,
+	ResizeObserverBox,
+	ResizeObserverTargetElement,
+	ResizeObserverTargetInput,
+	UseResizeObserverOptions,
+} from "./useResizeObserver/types";
 export type { ThrottleOptions } from "./useThrottler/types";
 export type {
 	ScrollToCellOptions,

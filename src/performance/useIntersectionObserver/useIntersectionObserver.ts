@@ -212,4 +212,4 @@ function useIntersectionObserver<T extends Element = Element>(
 	};
 }
 
-export { useIntersectionObserver };
+export { type UseIntersectionObserverReturn, useIntersectionObserver };

@@ -239,4 +239,4 @@ function useResizeObserver<T extends Element = Element>(
 	};
 }
 
-export { useResizeObserver };
+export { type UseResizeObserverReturn, useResizeObserver };
