@@ -86,6 +86,7 @@ function useSingleSelection<TId extends SelectionId = SelectionId>(
 	const select = useCallback(
 		(id: TId) => {
 			if (isDisabled?.(id)) return;
+
 			setSelectedId(id);
 		},
 		[isDisabled],
@@ -96,6 +97,7 @@ function useSingleSelection<TId extends SelectionId = SelectionId>(
 	const toggle = useCallback(
 		(id: TId) => {
 			if (isDisabled?.(id)) return;
+
 			setSelectedId((prev) => (prev === id ? undefined : id));
 		},
 		[isDisabled],
