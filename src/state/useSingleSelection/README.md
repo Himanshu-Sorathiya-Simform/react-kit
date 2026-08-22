@@ -10,8 +10,9 @@ Managing single-selection state manually with `useState` seems trivial at first,
 - A toggle handler that selects an item if it isn't selected, and deselects it if it is
 - A way to reset selection back to some default state
 - A boolean flag to know whether *anything* is currently selected
+- A way to mark certain items as non-selectable, without that logic leaking into every click handler
 
-`useSingleSelection` encapsulates all of this into a single, reusable, strictly-typed hook. Instead of scattering `===` comparisons and conditional setters across your components, you get a clean, self-documenting API — `select`, `deselect`, `toggle`, `isSelected`, `hasSelection`, and `resetSelection` — all backed by stable, memoized callbacks. Less boilerplate, fewer bugs, and a consistent selection pattern across your entire codebase.
+`useSingleSelection` encapsulates all of this into a single, reusable, strictly-typed hook. Instead of scattering `===` comparisons and conditional setters across your components, you get a clean, self-documenting API — `select`, `deselect`, `toggle`, `isSelected`, `hasSelection`, and `reset` — all backed by stable, memoized callbacks. Less boilerplate, fewer bugs, and a consistent selection pattern across your entire codebase.
 
 ## Import
 
@@ -55,25 +56,28 @@ function ItemList() {
 
 ### Parameters
 
-| Parameter          | Type                     | Required | Default     | Description                                                                                     |
-| ------------------ | ------------------------ | -------- | ----------- | ------------------------------------------------------------------------------------------------- |
-| `initialSelectedId` | `SelectionId` | No       | `undefined` | The `id` that should be selected when the hook is first initialized (on component mount). |
+`useSingleSelection` accepts a single, optional options object:
 
-> `SelectionId` is defined as `string | number`.
+| Option              | Type                   | Required | Default     | Description                                                                                                                     |
+| ------------------- | ---------------------- | -------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `defaultSelectedId` | `TId`                  | No       | `undefined` | The id selected when the hook first mounts, and the id `reset()` restores the selection to.                                     |
+| `isDisabled`        | `(id: TId) => boolean` | No       | `undefined` | Marks certain ids as non-selectable. Enforced by `select` and `toggle`; `deselect` is never blocked, regardless of this option. |
+
+> `TId` defaults to `SelectionId` (`string | number`). The hook is generic over it, so `useSingleSelection<UserId>()` narrows every id in the returned API to your own (branded or not) id type, if you want that extra precision — otherwise you can ignore it entirely and just use plain strings or numbers.
 
 ### Return Values
 
 `useSingleSelection` returns an object (`UseSingleSelectionReturn`) with the following properties and methods:
 
-| Name             | Type                                | Description                                                                                                                                              |
-| ---------------- | ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `selectedId`     | `string \| number \| undefined`     | The `id` of the currently selected item. `undefined` if nothing is selected.                                                                              |
-| `hasSelection`   | `boolean`                           | `true` if any item is currently selected, `false` otherwise. Derived from `selectedId`.                                                                    |
-| `select`         | `(id: string \| number) => void`    | Sets the given `id` as the selected item, regardless of the current state.                                                                                 |
-| `deselect`       | `() => void`                        | Clears the current selection, setting `selectedId` back to `undefined`. Takes no arguments.                                                                |
-| `toggle`         | `(id: string \| number) => void`    | Selects the given `id` if it isn't already selected; deselects it (sets `selectedId` to `undefined`) if it is already the selected item.                   |
-| `isSelected`     | `(id: string \| number) => boolean` | Returns `true` if the given `id` matches the current `selectedId`, `false` otherwise. Useful for conditional rendering/styling.                            |
-| `resetSelection` | `() => void`                        | Resets `selectedId` back to the original `initialSelectedId` value provided when the hook was first called. Takes no arguments. See Gotchas below.        |
+| Name           | Type                       | Description                                                                                                                             |
+| -------------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `selectedId`   | `TId \| undefined`         | The id of the currently selected item. `undefined` if nothing is selected.                                                                 |
+| `hasSelection` | `boolean`                  | `true` if any item is currently selected, `false` otherwise. Correctly reports `true` even for a falsy-but-valid id such as `0` or `""`.  |
+| `select`       | `(id: TId) => void`        | Sets the given id as the selected item, replacing any current selection. No-ops if `id` is disabled.                                       |
+| `deselect`     | `() => void`                | Clears the current selection, setting `selectedId` back to `undefined`. Takes no arguments. Always works, even for a disabled id.          |
+| `toggle`       | `(id: TId) => void`        | Selects the given id if it isn't already selected; deselects it if it is. The select-direction is blocked for a disabled id.               |
+| `isSelected`   | `(id: TId) => boolean`     | Returns `true` if the given id matches the current `selectedId`, `false` otherwise. Useful for conditional rendering/styling.               |
+| `reset`        | `() => void`                | Resets `selectedId` back to `defaultSelectedId`. Takes no arguments. See [Gotchas](#gotchas--edge-cases) for exactly which value it uses.  |
 
 ## Advanced Usage & Examples
 
@@ -140,6 +144,37 @@ function ToggleableRows() {
 }
 ```
 
+### Disabling Specific Items
+
+Use `isDisabled` to prevent certain items from being selected — for example, an out-of-stock option in a picker.
+
+```tsx
+import { useSingleSelection } from "@himanshu-sorathiya/react-kit/state";
+
+const sizes = [
+	{ id: "s", label: "Small", inStock: true },
+	{ id: "m", label: "Medium", inStock: false },
+	{ id: "l", label: "Large", inStock: true },
+];
+
+function SizePicker() {
+	const { select, isSelected } = useSingleSelection({
+		isDisabled: (id) => !sizes.find((size) => size.id === id)?.inStock,
+	});
+
+	return (
+		<div>
+			{sizes.map((size) => (
+				<button key={size.id} disabled={!size.inStock} onClick={() => select(size.id)}>
+					{isSelected(size.id) ? "✓ " : ""}
+					{size.label}
+				</button>
+			))}
+		</div>
+	);
+}
+```
+
 ## Real-World Use Cases
 
 - Single-select dropdowns and comboboxes
@@ -155,12 +190,11 @@ function ToggleableRows() {
 
 ## Gotchas & Edge Cases
 
-- **Reset Logic:** `resetSelection` reverts `selectedId` to whatever value was passed as `initialSelectedId` **at the time the component mounted**. It does not reactively track later changes to that prop — if the value you originally passed as `initialSelectedId` changes on a subsequent render, `resetSelection` will still reset to the *original* mount-time value, not the newer one.
-- **Type Flexibility:** `SelectionId` is typed as `string | number`, so the hook works equally well with database-generated IDs (strings or numeric primary keys) and simple array indices, without requiring any casting or conversion on your part.
+- **Reset Logic:** `reset()` restores `selectedId` to the **current** `defaultSelectedId` at the moment it's called — not necessarily the value that was present when the component first mounted. If `defaultSelectedId` changes across renders (e.g. it's derived from a prop), `reset()` will restore to whatever that value is *now*. The initial selection on mount, on the other hand, is only ever seeded from the value present on the first render.
+- **`isDisabled` doesn't retroactively clear selection:** if an already-selected id later starts returning `true` from `isDisabled` (e.g. an item that was selectable becomes unavailable), the hook won't automatically deselect it — `isDisabled` only guards *new* selections. If you need the selection to clear automatically the moment something becomes disabled, reconcile that yourself (e.g. in a `useEffect`).
+- **Type Flexibility:** `SelectionId` is `string | number`, so the hook works equally well with database-generated ids (strings or numeric primary keys) and simple array indices, without requiring any casting or conversion on your part. If you want stronger typing than a plain `string | number` (e.g. a branded `type UserId = string & { __brand: "UserId" }`), pass it as the generic: `useSingleSelection<UserId>()`.
 
 ## See Also
 
 - [useMultipleSelection](../useMultipleSelection/README.md) — manages selection logic for multiple concurrent items, for when more than one item can be selected at once.
-- [useOrder](../useOrder/README.md) — manages the sequence of items in a list, useful for reordering and drag-and-drop scenarios.
-- [useSort](../useSort/README.md) — sorts lists based on complex, configurable criteria.
-- [useFilter](../useFilter/README.md) — filters lists based on one or more conditions.
+- [useTreeSelection](../useTreeSelection/README.md) — manages hierarchical selection with parent/child cascading, for checkbox trees, nested category pickers, and file explorers.
