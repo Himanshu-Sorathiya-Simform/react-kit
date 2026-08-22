@@ -10,7 +10,7 @@ import {
 import { useEventListener } from "../../events/useEventListener/useEventListener.ts";
 import { useIntersectionObserver } from "../../performance/useIntersectionObserver/useIntersectionObserver.ts";
 import { useResizeObserver } from "../../performance/useResizeObserver/useResizeObserver.ts";
-import { getValue } from "../../shared/utils.ts";
+import { getValue } from "../../shared/stateShared/utils.ts";
 import { useDebouncedCallback } from "../useDebouncer/useDebouncedCallback.ts";
 import { DEFAULT_OVERSCAN, SCROLLING_DEBOUNCE_MS } from "./constants.ts";
 import type {
