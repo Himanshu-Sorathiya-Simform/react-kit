@@ -80,4 +80,4 @@ type UseMultipleSelectionOptions<
 > = UseMultipleSelectionBaseOptions<T, TId>
 	& UseMultipleSelectionFieldOptions<T, TId>;
 
-export { type UseMultipleSelectionOptions };
+export { type SelectionId, type UseMultipleSelectionOptions };

@@ -1,7 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
-import type { SelectionId } from "../../shared/selectionShared/types.ts";
 import { resolveSelectionId } from "../../shared/selectionShared/utils.ts";
-import type { UseMultipleSelectionOptions } from "./types.ts";
+import type { SelectionId, UseMultipleSelectionOptions } from "./types.ts";
 
 /**
  * Return shape of {@link useMultipleSelection}.
