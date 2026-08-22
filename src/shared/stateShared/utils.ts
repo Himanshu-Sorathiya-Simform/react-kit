@@ -1,7 +1,12 @@
 type Primitive = string | number | boolean | bigint | symbol | null | undefined;
 
 type PathImpl<K extends string | number, V> =
-	V extends Primitive ? `${K}` : `${K}` | `${K}.${Path<V>}`;
+	V extends Primitive ? `${K}`
+	: V extends readonly unknown[] ?
+		| `${K}`
+		| `${K}.${number}`
+		| (V[number] extends Primitive ? never : `${K}.${number}.${Path<V[number]>}`)
+	:	`${K}` | `${K}.${Path<V>}`;
 
 type Path<T> =
 	T extends object ?
@@ -25,37 +30,49 @@ type GetValueReturn<ReturnType, TObject, TPath> =
 		:	unknown
 	:	ReturnType;
 
-/**
- * Safely extracts a deeply nested value from an object using a dot-notation path or array of keys.
- *
- * @template ReturnType Explicitly override the return type if passing a dynamic path.
- * @template TObject The target object type.
- * @template TPath The string path or array path.
- */
 function getValue<
 	ReturnType = void,
-	TObject extends Record<string, unknown> = Record<string, unknown>,
-	TPath extends Path<TObject> | (string & {}) | readonly string[] = Path<TObject>,
+	TObject = unknown,
+	TPath extends Path<TObject> | (string & {}) | readonly (string | number)[] =
+		Path<TObject>,
 >(
 	obj: TObject,
 	path: TPath | undefined,
+	defaultValue?: GetValueReturn<ReturnType, TObject, TPath>,
 ): GetValueReturn<ReturnType, TObject, TPath> {
-	if (typeof obj !== "object" || obj === null) {
+	const isTraversable =
+		(typeof obj === "object" || typeof obj === "function") && obj !== null;
+
+	if (!isTraversable) {
 		return obj as unknown as GetValueReturn<ReturnType, TObject, TPath>;
 	}
 
-	if (!path) {
-		return undefined as unknown as GetValueReturn<ReturnType, TObject, TPath>;
+	const keys: readonly (string | number)[] =
+		typeof path === "string" ? path.split(".")
+		: Array.isArray(path) ? path
+		: [];
+
+	if (keys.length === 0) {
+		return (defaultValue ?? undefined) as unknown as GetValueReturn<
+			ReturnType,
+			TObject,
+			TPath
+		>;
 	}
 
-	const keys: readonly string[] =
-		typeof path === "string" ? path.split(".") : (path as readonly string[]);
+	const result = keys.reduce((current: unknown, key: string | number) => {
+		const canTraverse =
+			(typeof current === "object" || typeof current === "function")
+			&& current !== null;
 
-	return keys.reduce((current: unknown, key: string) => {
-		if (typeof current !== "object" || current === null) return undefined;
+		if (!canTraverse) return undefined;
 
-		return (current as Record<string, unknown>)[key];
-	}, obj as unknown) as GetValueReturn<ReturnType, TObject, TPath>;
+		return (current as Record<string | number, unknown>)[key];
+	}, obj as unknown);
+
+	return (result === undefined ?
+		(defaultValue ?? undefined)
+	:	result) as unknown as GetValueReturn<ReturnType, TObject, TPath>;
 }
 
-export { getValue };
+export { type Path, type PathValue, getValue };
