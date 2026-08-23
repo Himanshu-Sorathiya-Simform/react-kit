@@ -1,3 +1,7 @@
+export {
+	type UseExpansionReturn,
+	useExpansion,
+} from "./useExpansion/useExpansion.ts";
 export { type UseFilterReturn, useFilter } from "./useFilter/useFilter.ts";
 export {
 	type UseFuzzySearchFields,
@@ -14,6 +18,7 @@ export {
 	type UsePaginationReturn,
 	usePagination,
 } from "./usePagination/usePagination.ts";
+export { type UsePinReturn, usePin } from "./usePin/usePin.ts";
 export {
 	type UseSingleSelectionReturn,
 	useSingleSelection,
@@ -23,7 +28,12 @@ export {
 	type UseTreeSelectionReturn,
 	useTreeSelection,
 } from "./useTreeSelection/useTreeSelection.ts";
+export {
+	type UseVisibilityReturn,
+	useVisibility,
+} from "./useVisibility/useVisibility.ts";
 
+export type { ExpansionId, UseExpansionOptions } from "./useExpansion/types.ts";
 export type {
 	BooleanOperator,
 	CustomOperator,
@@ -45,6 +55,7 @@ export type {
 } from "./useFuzzySearch/types.ts";
 export type { Group } from "./useGrouping/types.ts";
 export type { UseMultipleSelectionOptions } from "./useMultipleSelection/types.ts";
+export type { PinId, UsePinOptions } from "./usePin/types.ts";
 export type { UseSingleSelectionOptions } from "./useSingleSelection/types.ts";
 export type {
 	BaseSortConfig,
@@ -64,5 +75,6 @@ export type {
 	TreeNodeState,
 	UseTreeSelectionOptions,
 } from "./useTreeSelection/types.ts";
+export type { UseVisibilityOptions, VisibilityId } from "./useVisibility/types.ts";
 
 export type { SelectionId } from "../shared/selectionShared/types.ts";
