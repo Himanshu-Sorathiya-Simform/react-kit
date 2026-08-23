@@ -39,4 +39,4 @@ interface UseSingleSelectionOptions<TId extends SelectionId = SelectionId> {
 	isDisabled?: (id: TId) => boolean;
 }
 
-export { type SelectionId, type UseSingleSelectionOptions };
+export { type UseSingleSelectionOptions };

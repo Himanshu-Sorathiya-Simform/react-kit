@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
+import type { SelectionId } from "../../shared/selectionShared/types.ts";
 import {
 	computeBatchToggle,
 	computeFullSelectionState,
@@ -9,7 +10,6 @@ import {
 } from "./core.ts";
 import type {
 	FlattenedForest,
-	SelectionId,
 	TreeNodeState,
 	UseTreeSelectionOptions,
 } from "./types.ts";

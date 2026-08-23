@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
-import type { SelectionId, UseSingleSelectionOptions } from "./types.ts";
+import type { SelectionId } from "../../shared/selectionShared/types.ts";
+import type { UseSingleSelectionOptions } from "./types.ts";
 
 /**
  * Return shape of {@link useSingleSelection}.

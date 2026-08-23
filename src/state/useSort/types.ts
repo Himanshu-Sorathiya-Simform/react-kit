@@ -1,3 +1,8 @@
+import type {
+	DistributiveOmit,
+	DistributivePartial,
+} from "../../shared/stateShared/types.ts";
+
 /** The comparison strategy for a sort key - selects which built-in comparator is used, or `custom` for a caller-supplied one. */
 type SortType =
 	| "numeric"
@@ -102,18 +107,6 @@ type SortOptionsForType<T extends SortType> = Omit<
 >;
 
 /**
- * `Omit<T, K>`, applied per union member instead of to the flattened union
- * as a whole - plain `Omit` over a union loses the correlation between
- * `type` and that arm's own extra fields (e.g. `dateGranularity`), which is
- * exactly the information {@link SortConfigUpdate} needs to preserve.
- */
-type DistributiveOmit<T, K extends PropertyKey> =
-	T extends unknown ? Omit<T, K> : never;
-
-/** `Partial<T>`, applied per union member - same distributive reasoning as {@link DistributiveOmit}. */
-type DistributivePartial<T> = T extends unknown ? Partial<T> : never;
-
-/**
  * The update payload type for `updateSortConfig`.
  *
  * @remarks
@@ -142,8 +135,6 @@ interface UseSortOptions {
 export type {
 	BaseSortConfig,
 	BaseSortOptions,
-	DistributiveOmit,
-	DistributivePartial,
 	SortConfig,
 	SortConfigUpdate,
 	SortOptionsForType,

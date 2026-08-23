@@ -120,14 +120,13 @@ interface UseTreeSelectionOptions<T, TId extends SelectionId> {
 	leafOnly?: boolean;
 }
 
-export {
-	type ChildrenAccessor,
-	type ChildrenKey,
-	type FieldAccessor,
-	type FieldKey,
-	type FlattenedForest,
-	type FlatTreeEntry,
-	type SelectionId,
-	type TreeNodeState,
-	type UseTreeSelectionOptions,
+export type {
+	ChildrenAccessor,
+	ChildrenKey,
+	FieldAccessor,
+	FieldKey,
+	FlattenedForest,
+	FlatTreeEntry,
+	TreeNodeState,
+	UseTreeSelectionOptions,
 };

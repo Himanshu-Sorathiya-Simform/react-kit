@@ -3,11 +3,6 @@ export {
 	useExpansion,
 } from "./useExpansion/useExpansion.ts";
 export { type UseFilterReturn, useFilter } from "./useFilter/useFilter.ts";
-export {
-	type UseFuzzySearchFields,
-	type UseFuzzySearchReturn,
-	useFuzzySearch,
-} from "./useFuzzySearch/useFuzzySearch.ts";
 export { type UseGroupingReturn, useGrouping } from "./useGrouping/useGrouping.ts";
 export {
 	type UseMultipleSelectionReturn,
@@ -39,6 +34,7 @@ export type {
 	CustomOperator,
 	DateOperator,
 	FilterConfig,
+	FilterConfigUpdate,
 	FilterOptions,
 	FilterState,
 	FilterType,
@@ -46,6 +42,7 @@ export type {
 	NumberOperator,
 	SelectOperator,
 	TextOperator,
+	UseFilterOptions,
 } from "./useFilter/types.ts";
 export type {
 	FlatIndexedItem,
@@ -53,17 +50,34 @@ export type {
 	IndexedToken,
 	ScoredItem,
 } from "./useFuzzySearch/types.ts";
-export type { Group } from "./useGrouping/types.ts";
+export type {
+	DateBucketGranularity,
+	Group,
+	GroupByCustomLevel,
+	GroupByDateLevel,
+	GroupByFieldLevel,
+	GroupByLevel,
+	NormalizedGroupByLevel,
+	UseGroupingOptions,
+} from "./useGrouping/types.ts";
 export type { UseMultipleSelectionOptions } from "./useMultipleSelection/types.ts";
+export type {
+	OrderTarget,
+	UseOrderBaseOptions,
+	UseOrderFieldOptions,
+} from "./useOrder/types.ts";
 export type { PinId, UsePinOptions } from "./usePin/types.ts";
 export type { UseSingleSelectionOptions } from "./useSingleSelection/types.ts";
 export type {
 	BaseSortConfig,
 	BaseSortOptions,
 	SortConfig,
+	SortConfigUpdate,
 	SortOptionsForType,
 	SortState,
 	SortType,
+	SortUndefinedOption,
+	UseSortOptions,
 } from "./useSort/types.ts";
 export type {
 	ChildrenAccessor,
