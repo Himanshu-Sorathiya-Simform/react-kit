@@ -45,12 +45,6 @@ export type {
 	UseFilterOptions,
 } from "./useFilter/types.ts";
 export type {
-	FlatIndexedItem,
-	FuzzySearchOptions,
-	IndexedToken,
-	ScoredItem,
-} from "./useFuzzySearch/types.ts";
-export type {
 	DateBucketGranularity,
 	Group,
 	GroupByCustomLevel,
