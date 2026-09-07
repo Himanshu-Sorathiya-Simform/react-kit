@@ -41,7 +41,7 @@ interface UseControllableStateOptions<T> {
 	 * nullable, `value: null` is a legitimate controlled state, not an
 	 * opt-out.
 	 */
-	value?: T;
+	value?: T | undefined;
 
 	/**
 	 * Initial value used **only** in uncontrolled mode (i.e., when
@@ -56,7 +56,7 @@ interface UseControllableStateOptions<T> {
 	 * `null`, `defaultValue: null` is honored as-is and will NOT fall back to
 	 * {@link UseControllableStateOptions.fallbackValue}.
 	 */
-	defaultValue?: T;
+	defaultValue?: T | undefined;
 
 	/**
 	 * Callback fired whenever the internal dispatcher would change the value.
@@ -76,7 +76,7 @@ interface UseControllableStateOptions<T> {
 	 * next value is `Object.is`-equal to the current value. This mirrors the
 	 * hook's re-render bail-out: no actual change means no notification.
 	 */
-	onChange?: (value: T) => void;
+	onChange?: ((value: T) => void) | undefined;
 
 	/**
 	 * Fallback to use when both {@link UseControllableStateOptions.value} (in
@@ -96,7 +96,7 @@ interface UseControllableStateOptions<T> {
 	 * yourself, since it can happen for real (e.g. uncontrolled with no
 	 * `defaultValue`, before the first dispatch).
 	 */
-	fallbackValue?: T;
+	fallbackValue?: T | undefined;
 
 	/**
 	 * Human-readable name of the hook or component consuming
@@ -109,7 +109,7 @@ interface UseControllableStateOptions<T> {
 	 *
 	 * @defaultValue `"useControllableState"`
 	 */
-	hookName?: string;
+	hookName?: string | undefined;
 }
 
 export type { ControllableDispatch, UseControllableStateOptions };
