@@ -21,3 +21,9 @@ export type {
 	UseEventListenerOptions,
 } from "./useEventListener/types";
 export type { KeyEventType, UseKeyBaseOptions, UseKeyOptions } from "./useKey/types";
+
+export {
+	formatKey,
+	type FormatKeyDescriptor,
+	type FormatKeyOptions,
+} from "../shared/keysShared/utils";
