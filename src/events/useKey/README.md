@@ -10,7 +10,7 @@ Wiring up a keyboard shortcut by hand with a raw `useEffect` looks simple at fir
 
 - **Automatic cleanup** — the listener is added and removed for you, so you never leak listeners across renders or unmounts.
 - **Always-fresh handler, no stale closures** — built on top of [`useEventListener`](../useEventListener/README.md), the hook leverages React's `useEffectEvent` to always call your *latest* handler without needing to re-attach the DOM listener or list `handler` in a dependency array.
-- **Modifier key support** — declaratively require `ctrlKey`, `shiftKey`, `altKey`, and/or `metaKey` to be held for the shortcut to fire.
+- **Modifier key support** — declaratively require `ctrlKey`, `shiftKey`, `altKey`, and/or `metaKey` to be held for the shortcut to fire, or use the platform-aware `mod` for a shortcut that should resolve to Cmd on macOS and Ctrl on Windows/Linux automatically.
 - **Safe input handling** — with `ignoreWhenFocusedInInputs`, the hook automatically ignores key presses while the user is focused in an `<input>`, `<textarea>`, `<select>`, or any `contenteditable` element, so you don't accidentally hijack normal typing.
 - **IME-composition safe** — ignores keystrokes fired while a user is composing text via an IME (e.g. typing pinyin or romaji before a CJK character is confirmed), so shortcuts don't misfire or interfere with the IME's own confirmation key.
 - **Held-key repeat prevention** — with `preventRepeat`, the hook suppresses the flood of repeated `keydown` events fired by the browser while a key is held down, only firing your handler once per physical press.
@@ -49,13 +49,16 @@ import { useKey } from "@himanshu-sorathiya/react-kit";
 | `eventType`                  | `"keydown" \| "keyup" \| "keypress"`                            | `"keydown"` | Which keyboard event to listen for.                                                              |
 | `preventRepeat`              | `boolean`                                                      | `false`     | Suppresses the handler from firing repeatedly while the key is held down, based on the native `KeyboardEvent.repeat` property. Not valid with `eventType: "keyup"` — enforced at the type level, since keyup events are never marked as repeating. |
 | `ignoreWhenFocusedInInputs`  | `boolean`                                                      | `true`      | Skips the handler when the event target is an `<input>`, `<textarea>`, `<select>`, or a `contenteditable` element. |
-| `ctrlKey`                    | `boolean`                                                      | `false`     | Whether the Ctrl key must be held for the shortcut to match.                                     |
+| `mod`                        | `boolean`                                                      | `false`     | Whether the platform's primary modifier must be held — Meta (Cmd) on macOS, Ctrl on Windows/Linux — auto-detected. Cannot be combined with `ctrlKey`/`metaKey` — see note below. |
+| `ctrlKey`                    | `boolean`                                                      | `false`     | Whether the Ctrl key must be held for the shortcut to match. Cannot be combined with `mod` — see note below. |
 | `shiftKey`                   | `boolean`                                                      | `false`     | Whether the Shift key must be held for the shortcut to match.                                    |
 | `altKey`                     | `boolean`                                                      | `false`     | Whether the Alt (or Option) key must be held for the shortcut to match.                          |
-| `metaKey`                    | `boolean`                                                      | `false`     | Whether the Meta key (Cmd on macOS, Windows key on Windows) must be held for the shortcut to match. |
+| `metaKey`                    | `boolean`                                                      | `false`     | Whether the Meta key (Cmd on macOS, Windows key on Windows) must be held for the shortcut to match. Cannot be combined with `mod` — see note below. |
 | `target`                     | `Window \| Document \| HTMLElement \| RefObject<HTMLElement \| null> \| null` | `window` | The element the listener is attached to. A React `RefObject` is strongly preferred for scoping a shortcut to a specific component; `window`, `document`, or a plain element also work. |
 
-> **Note on modifiers:** matching is exact against all four flags at once. If you don't set `ctrlKey: true`, the shortcut will *not* fire while Ctrl is held, even if the base key matches. See Example 2 below for the pattern this implies for cross-platform shortcuts.
+> **Note on modifiers:** matching is exact against `ctrlKey`, `shiftKey`, `altKey`, and `metaKey` all at once — if you don't set `ctrlKey: true`, the shortcut will *not* fire while Ctrl is held, even if the base key matches.
+>
+> `mod` resolves to `ctrlKey`/`metaKey` internally (Meta on macOS, Ctrl on Windows/Linux) before this matching happens, so `{ mod: true }` is still an exact match against whichever one it resolves to, not an "either modifier" check. Because of that, `mod` and an explicit `ctrlKey`/`metaKey` are mutually exclusive: TypeScript rejects passing both, and if a plain-JS caller does anyway, `mod` takes precedence and a `console.warn` is logged in development.
 
 ### Return Value
 
@@ -88,14 +91,13 @@ function Modal({ onClose }: { onClose: () => void }) {
 
 ### Example 2: Cross-Platform Modifier Shortcut (Command Palette)
 
-Since modifier matching is exact, there's no built-in cross-platform "Mod" key (Cmd on macOS, Ctrl elsewhere). Register the shortcut twice instead, once per modifier — it's cheap, and each call can independently have its own options if you ever need that:
+Use `mod` for a shortcut that should follow platform convention — it resolves to Meta (Cmd) on macOS and Ctrl on Windows/Linux automatically:
 
 ```tsx
 import { useKey } from "@himanshu-sorathiya/react-kit/events";
 
 function CommandPaletteTrigger({ onOpen }: { onOpen: () => void }) {
-	useKey("k", onOpen, { ctrlKey: true });
-	useKey("k", onOpen, { metaKey: true });
+	useKey("k", onOpen, { mod: true });
 
 	return null;
 }
@@ -141,7 +143,7 @@ import { useKey } from "@himanshu-sorathiya/react-kit/events";
 
 function SaveShortcut({ onSave }: { onSave: () => void }) {
 	// Won't fire while typing in a text field, by default
-	useKey("s", onSave, { ctrlKey: true });
+	useKey("s", onSave, { mod: true });
 
 	return <input type="text" />;
 }
@@ -163,7 +165,7 @@ Set `ignoreWhenFocusedInInputs: false` if you deliberately want the shortcut to 
 
 ## Gotchas & Edge Cases
 
-- **SSR Safe:** On the server, `window` is `undefined`, so the resolved target safely falls back to `null` and the DOM-binding logic is skipped entirely. No errors are thrown during server-side rendering or static generation.
+- **SSR Safe:** On the server, `window` is `undefined`, so the resolved target safely falls back to `null` and the DOM-binding logic is skipped entirely. `mod` is also SSR-safe — with no `navigator` to read, it resolves to Ctrl (the non-macOS branch) — though this has no practical effect, since the listener itself doesn't attach until the client anyway. No errors are thrown during server-side rendering or static generation.
 
 - **IME Composition Safety:** Keystrokes fired while a user is composing text via an IME — for example, typing pinyin or romaji before a CJK character is confirmed — are ignored entirely, before any key or modifier matching happens. Without this, a shortcut bound to a common confirmation key like `Enter` could misfire mid-composition or interfere with the IME's own confirmation step, making the affected component unusable for Chinese, Japanese, or Korean input. This is automatic and not configurable.
 
@@ -179,7 +181,7 @@ Set `ignoreWhenFocusedInInputs: false` if you deliberately want the shortcut to 
 useKey("Enter", handleSubmit, { eventType: "keydown", preventRepeat: true });
 ```
 
-- **Development-Only Warnings:** In development, the hook logs a `console.warn` if `key` resolves to an empty string, since such a listener can never match anything. This has no effect in production builds.
+- **Development-Only Warnings:** In development, the hook logs a `console.warn` if `key` resolves to an empty string, since such a listener can never match anything, and separately if `mod` is combined with an explicit `ctrlKey`/`metaKey` — a combination TypeScript already rejects, but worth flagging at runtime for callers not using it. Neither warning has any effect in production builds.
 
 ## See Also
 

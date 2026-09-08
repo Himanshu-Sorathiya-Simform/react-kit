@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { resolveMod } from "../../shared/keysShared/platform.ts";
 import { useEventListener } from "../useEventListener/useEventListener.ts";
 import { validKeyEventTypes } from "./constants.ts";
 import type { UseKeyOptions } from "./types.ts";
@@ -64,6 +65,7 @@ function useKey(
 		eventType = "keydown",
 		preventRepeat = false,
 		ignoreWhenFocusedInInputs = true,
+		mod = false,
 		ctrlKey = false,
 		shiftKey = false,
 		altKey = false,
@@ -80,36 +82,33 @@ function useKey(
 				"[useKey] Called with an empty key — this listener will never match.",
 			);
 		}
-		// An effect (rather than a warn-once ref) is enough here: this only
-		// re-runs when `targetKey` actually changes, not on every keystroke,
-		// so there's no spam risk to guard against.
-	}, [targetKey]);
 
-	// Defensive at runtime, not just at the type level — protects
-	// non-TypeScript callers (or anyone bypassing the types) from an
-	// unrecognized eventType silently attaching to nothing.
+		// `mod` and an explicit ctrlKey/metaKey are mutually exclusive at the
+		// type level, but a plain-JS caller can still pass both — `mod`
+		// takes full precedence in that case, so this only exists to flag
+		// the ambiguity rather than let it resolve silently.
+		if (isDev && mod && (ctrlKey || metaKey)) {
+			console.warn(
+				"[useKey] `mod` is combined with an explicit `ctrlKey`/`metaKey` — `mod` takes precedence and the explicit value is ignored.",
+			);
+		}
+	}, [targetKey, mod, ctrlKey, metaKey]);
+
 	const resolvedEventType =
 		validKeyEventTypes.includes(eventType) ? eventType : "keydown";
-	// keyup events are never marked auto-repeating, so this only matters for
-	// keydown/keypress — also enforced at the type level in UseKeyOptions.
 	const shouldPreventRepeat = preventRepeat && resolvedEventType !== "keyup";
+
+	// `mod` fully replaces ctrlKey/metaKey rather than combining with them —
+	// resolved fresh each render, same cost class as `targetKey` above.
+	const modResolved = mod ? resolveMod() : null;
+	const requiredCtrlKey = modResolved ? modResolved.ctrlKey : ctrlKey;
+	const requiredMetaKey = modResolved ? modResolved.metaKey : metaKey;
 
 	const onKeyEvent = (event: Event) => {
 		if (!(event instanceof KeyboardEvent)) return;
 
-		// Bail out during IME composition (e.g. typing pinyin/romaji before a
-		// CJK character is confirmed). keydown events fire throughout
-		// composition, and matching against them would misfire shortcuts or
-		// swallow the IME's own confirmation keystroke. `keyCode === 229` is
-		// a legacy Chromium marker for the same condition, checked alongside
-		// `isComposing` for older/edge cases.
 		if (event.isComposing || event.keyCode === 229) return;
 
-		// Uses the native `repeat` flag rather than manual keyup/blur
-		// tracking — simpler and accurate for the single-key case this hook
-		// targets. (There's a known, narrow Chromium bug affecting `.repeat`
-		// when multiple different keys are held simultaneously; not a
-		// concern for typical single hotkey/combo usage.)
 		if (shouldPreventRepeat && event.repeat) return;
 
 		const focusedElement = event.target;
@@ -124,38 +123,27 @@ function useKey(
 		) {
 			return;
 		}
-
 		const matchesModifiers =
-			event.ctrlKey === ctrlKey
+			event.ctrlKey === requiredCtrlKey
 			&& event.shiftKey === shiftKey
 			&& event.altKey === altKey
-			&& event.metaKey === metaKey;
+			&& event.metaKey === requiredMetaKey;
 
 		if (!matchesModifiers || targetKey !== event.key.toLowerCase()) return;
 
-		// Applied before calling `handler`, so this still takes effect even
-		// if `handler` throws.
 		if (preventDefault) event.preventDefault();
 		if (stopPropagation) event.stopPropagation();
 
 		handler(event);
 	};
 
-	// Resolved here (rather than left as `undefined` for useEventListener's
-	// own default-to-window logic) for two reasons: it lets `enabled` gate
-	// the target to `null` to fully detach the listener when disabled, and
-	// it keeps the value's type free of `undefined`, which is required for
-	// useEventListener's generic-target overload to resolve correctly here.
 	const resolvedTarget =
 		enabled ? (target ?? (typeof window === "undefined" ? null : window)) : null;
 
 	return useEventListener(resolvedEventType, onKeyEvent, {
 		target: resolvedTarget,
 		capture,
-		// `passive` is intentionally left at its default (`false`): this
-		// hook conditionally calls preventDefault(), which passive listeners
-		// are not allowed to do.
 	});
 }
 
-export { type UseKeyReturn, useKey };
+export { useKey, type UseKeyReturn };
