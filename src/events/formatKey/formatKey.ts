@@ -1,3 +1,5 @@
+import { detectPlatform, resolveMod, type Platform } from "../../shared/keysShared/platform.ts";
+import type { CanonicalModifier } from "../../shared/keysShared/types.ts";
 import {
 	KEY_DISPLAY_SYMBOLS,
 	KEY_TEXT_LABELS,
@@ -8,34 +10,13 @@ import {
 	PUNCTUATION_KEY_DISPLAY_LABELS,
 	WINDOWS_MODIFIER_LABELS,
 } from "./constants.ts";
-import { detectPlatform, resolveMod, type Platform } from "./platform.ts";
-import type { CanonicalModifier, KeyModifiers } from "./types.ts";
+import type { FormatKeyDescriptor, FormatKeyOptions } from "./types.ts";
 
-/** A key combination to format — the same modifier shape `useKey` matches against, plus the key itself. */
-type FormatKeyDescriptor = KeyModifiers & {
-	key: string;
-	shiftKey?: boolean;
-	altKey?: boolean;
-};
-
-interface FormatKeyOptions {
-	/**
-	 * Overrides platform auto-detection — useful for rendering a shortcut
-	 * for a platform other than the one the code is currently running on
-	 * (e.g. a settings screen listing both mac and Windows bindings).
-	 * @default detectPlatform()
-	 */
-	platform?: Platform;
-
-	/**
-	 * Whether to render glyphs — modifier symbols (⌘⌥⇧⌃, mac only) and
-	 * special-key symbols (↵ ⌫ ⇥ ⎋ ↑ ↓ ← →, any platform) — instead of text
-	 * labels. Modifiers only have glyphs on mac; Windows/Linux modifiers
-	 * always render as text regardless of this option.
-	 * @default true
-	 */
-	useSymbols?: boolean;
-}
+// No ambient `process` type required (works without @types/node); defaults
+// to "dev" if the environment can't be determined at all.
+const isDev =
+	(globalThis as { process?: { env?: { NODE_ENV?: string } } }).process?.env
+		?.NODE_ENV !== "production";
 
 function modifierLabelsFor(platform: Platform): Record<CanonicalModifier, string> {
 	if (platform === "mac") return MAC_MODIFIER_LABELS;
@@ -55,15 +36,44 @@ function formatModifier(
 	return modifierLabelsFor(platform)[modifier];
 }
 
+/** Looks up `key` in `map` ignoring case, since callers may pass it in any casing (matching `useKey`'s own case-insensitive `key` matching). */
+function lookupKeyName<T>(map: Record<string, T>, key: string): T | undefined {
+	const normalized = key.toLowerCase();
+
+	for (const candidate in map) {
+		if (candidate.toLowerCase() === normalized) return map[candidate];
+	}
+
+	return undefined;
+}
+
 function formatMainKey(key: string, useSymbols: boolean): string {
-	if (useSymbols && key in KEY_DISPLAY_SYMBOLS) return KEY_DISPLAY_SYMBOLS[key]!;
+	// The spacebar's real `KeyboardEvent.key` value is a literal " ", not
+	// the word "Space" the display maps below are keyed by — normalized
+	// here so a descriptor built from a real event (or from `useKey`'s own
+	// " " convention) still resolves to "␣"/"Space" instead of falling
+	// through to a blank string.
+	const normalizedKey = key === " " ? "Space" : key;
 
-	if (key in KEY_TEXT_LABELS) return KEY_TEXT_LABELS[key]!;
+	if (useSymbols) {
+		const symbol = lookupKeyName(KEY_DISPLAY_SYMBOLS, normalizedKey);
+		if (symbol !== undefined) return symbol;
+	}
 
-	if (key in PUNCTUATION_KEY_DISPLAY_LABELS)
-		return PUNCTUATION_KEY_DISPLAY_LABELS[key]!;
+	const textLabel = lookupKeyName(KEY_TEXT_LABELS, normalizedKey);
 
-	return key.length === 1 ? key.toUpperCase() : key;
+	if (textLabel !== undefined) return textLabel;
+
+	const punctuationLabel = lookupKeyName(
+		PUNCTUATION_KEY_DISPLAY_LABELS,
+		normalizedKey,
+	);
+
+	if (punctuationLabel !== undefined) return punctuationLabel;
+
+	if (normalizedKey.length === 1) return normalizedKey.toUpperCase();
+
+	return normalizedKey.charAt(0).toUpperCase() + normalizedKey.slice(1);
 }
 
 /**
@@ -83,6 +93,12 @@ function formatKey(
 	descriptor: FormatKeyDescriptor,
 	options: FormatKeyOptions = {},
 ): string {
+	if (isDev && descriptor.key === "") {
+		console.warn(
+			"[formatKey] Called with an empty key — the formatted string may be incomplete.",
+		);
+	}
+
 	const platform = options.platform ?? detectPlatform();
 	const useSymbols = options.useSymbols ?? true;
 
@@ -117,4 +133,4 @@ function formatKey(
 	return parts.join(separator);
 }
 
-export { formatKey, type FormatKeyDescriptor, type FormatKeyOptions };
+export { formatKey };

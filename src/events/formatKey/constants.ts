@@ -1,4 +1,4 @@
-import type { CanonicalModifier } from "./types.ts";
+import type { CanonicalModifier } from "../../shared/keysShared/types.ts";
 
 /** Canonical modifier order used when composing a display string. */
 const MODIFIER_ORDER: readonly CanonicalModifier[] = [
@@ -86,6 +86,8 @@ const PUNCTUATION_KEY_DISPLAY_LABELS: Record<string, string> = {
 	"-": "Minus",
 	".": "Period",
 	";": "Semicolon",
+	"/": "Slash",
+	"'": "Quote",
 };
 
 export {

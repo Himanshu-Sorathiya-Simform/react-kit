@@ -7,13 +7,28 @@
 type Platform = "mac" | "windows" | "linux";
 
 /**
+ * Memoized result of {@link detectPlatform}, populated on first call. Never
+ * set from the SSR fallback (see below), so a module instance that first
+ * runs on the server and then gets reused during client hydration still
+ * detects the real platform instead of getting stuck on `"windows"`.
+ */
+let cachedPlatform: Platform | null = null;
+
+/**
  * Detects the current platform family. Prefers the modern
  * `navigator.userAgentData.platform` (currently Chromium-only) and falls
  * back to the deprecated but still universally-supported
  * `navigator.platform` / `navigator.userAgent`. Defaults to `"windows"`
  * when neither exists (SSR) — safe, since matching only checks mac-or-not.
+ *
+ * The result is cached after the first real (non-SSR) detection — the
+ * platform a page is running on can't change mid-session, so there's no
+ * reason to re-read `navigator` on every `useKey({ mod: true })` render or
+ * `formatKey()` call.
  */
 function detectPlatform(): Platform {
+	if (cachedPlatform !== null) return cachedPlatform;
+
 	if (typeof navigator === "undefined") return "windows";
 
 	const uaData = (
@@ -28,12 +43,14 @@ function detectPlatform(): Platform {
 		|| normalized.includes("iphone")
 		|| normalized.includes("ipad")
 	) {
-		return "mac";
+		cachedPlatform = "mac";
+	} else if (normalized.includes("linux")) {
+		cachedPlatform = "linux";
+	} else {
+		cachedPlatform = "windows";
 	}
 
-	if (normalized.includes("linux")) return "linux";
-
-	return "windows";
+	return cachedPlatform;
 }
 
 /**
