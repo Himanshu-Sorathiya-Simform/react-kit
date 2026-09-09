@@ -34,7 +34,7 @@ import { useKey } from "@himanshu-sorathiya/react-kit";
 
 | Argument  | Type                          | Required | Description                                                                                                   |
 | --------- | ------------------------------ | -------- | ------------------------------------------------------------------------------------------------------------- |
-| `key`     | `string`                       | Yes      | The key to listen for, matched against `KeyboardEvent.key`. **Case-insensitive** — `"Escape"`, `"escape"`, and `"ESCAPE"` are all treated the same. |
+| `key`     | `string`                       | Yes      | The key to listen for, matched against `KeyboardEvent.key`. **Case-insensitive** — `"Escape"`, `"escape"`, and `"ESCAPE"` are all treated the same. The spacebar can be passed either as `" "` (its real `KeyboardEvent.key` value) or the word `"Space"` — both resolve identically. |
 | `handler` | `(event: KeyboardEvent) => void` | Yes    | Callback invoked when the key (and any required modifiers) match. Doesn't need to be memoized — the latest `handler` is always used, and changing it does not re-attach the listener. |
 | `options` | `UseKeyOptions`                 | No     | Configuration object described below.                                                                          |
 
@@ -48,13 +48,13 @@ import { useKey } from "@himanshu-sorathiya/react-kit";
 | `capture`                    | `boolean`                                                      | `false`     | Whether the listener is invoked during the capture phase. See Gotchas below for when you'd want to change this. |
 | `eventType`                  | `"keydown" \| "keyup" \| "keypress"`                            | `"keydown"` | Which keyboard event to listen for.                                                              |
 | `preventRepeat`              | `boolean`                                                      | `false`     | Suppresses the handler from firing repeatedly while the key is held down, based on the native `KeyboardEvent.repeat` property. Not valid with `eventType: "keyup"` — enforced at the type level, since keyup events are never marked as repeating. |
-| `ignoreWhenFocusedInInputs`  | `boolean`                                                      | `true`      | Skips the handler when the event target is an `<input>`, `<textarea>`, `<select>`, or a `contenteditable` element. |
+| `ignoreWhenFocusedInInputs`  | `boolean`                                                      | `true`      | Skips the handler while focus is on a text-entry surface — a `<textarea>`, a `contenteditable` element, a `<select>`, or an `<input>` whose `type` accepts typed text. Non-text `<input>` types (`checkbox`, `radio`, `button`, `range`, `color`, `file`, and similar) are left alone, since a global shortcut like `Escape` shouldn't silently stop working just because a checkbox happens to be focused. |
 | `mod`                        | `boolean`                                                      | `false`     | Whether the platform's primary modifier must be held — Meta (Cmd) on macOS, Ctrl on Windows/Linux — auto-detected. Cannot be combined with `ctrlKey`/`metaKey` — see note below. |
 | `ctrlKey`                    | `boolean`                                                      | `false`     | Whether the Ctrl key must be held for the shortcut to match. Cannot be combined with `mod` — see note below. |
 | `shiftKey`                   | `boolean`                                                      | `false`     | Whether the Shift key must be held for the shortcut to match.                                    |
 | `altKey`                     | `boolean`                                                      | `false`     | Whether the Alt (or Option) key must be held for the shortcut to match.                          |
 | `metaKey`                    | `boolean`                                                      | `false`     | Whether the Meta key (Cmd on macOS, Windows key on Windows) must be held for the shortcut to match. Cannot be combined with `mod` — see note below. |
-| `target`                     | `Window \| Document \| HTMLElement \| RefObject<HTMLElement \| null> \| null` | `window` | The element the listener is attached to. A React `RefObject` is strongly preferred for scoping a shortcut to a specific component; `window`, `document`, or a plain element also work. |
+| `target`                     | `Window \| Document \| HTMLElement \| SVGElement \| RefObject<HTMLElement \| SVGElement \| null> \| null` | `window` | The element the listener is attached to. A React `RefObject` is strongly preferred for scoping a shortcut to a specific component; `window`, `document`, a plain `HTMLElement`, or a focusable `SVGElement` also work. |
 
 > **Note on modifiers:** matching is exact against `ctrlKey`, `shiftKey`, `altKey`, and `metaKey` all at once — if you don't set `ctrlKey: true`, the shortcut will *not* fire while Ctrl is held, even if the base key matches.
 >
@@ -165,6 +165,10 @@ Set `ignoreWhenFocusedInInputs: false` if you deliberately want the shortcut to 
 
 ## Gotchas & Edge Cases
 
+- **Conditional Rendering & Refs (Late-Mount Gotcha):** If `target` is a ref whose element renders conditionally after mount, the hook won't detect it — a plain `useRef` mutation doesn't trigger a re-render, so it never sees the ref populate. Use a callback ref or state-based ref instead. See [`useEventListener`'s Late-Mount Gotcha](../useEventListener/README.md#gotchas--edge-cases) for the full explanation.
+
+- **Matching Is Exact, Even for Inherently-Shifted Punctuation:** Some characters require Shift on most layouts to type at all — `?` is `Shift+/` on a US keyboard, for instance. Since modifier matching is exact (see the note above), `useKey("?", handler)` alone won't fire; the actual `keydown` arrives with `event.shiftKey === true`, which doesn't match the default `shiftKey: false`. Bind `{ shiftKey: true }` explicitly for these keys — the same as any other Shift-requiring combination.
+
 - **SSR Safe:** On the server, `window` is `undefined`, so the resolved target safely falls back to `null` and the DOM-binding logic is skipped entirely. `mod` is also SSR-safe — with no `navigator` to read, it resolves to Ctrl (the non-macOS branch) — though this has no practical effect, since the listener itself doesn't attach until the client anyway. No errors are thrown during server-side rendering or static generation.
 
 - **IME Composition Safety:** Keystrokes fired while a user is composing text via an IME — for example, typing pinyin or romaji before a CJK character is confirmed — are ignored entirely, before any key or modifier matching happens. Without this, a shortcut bound to a common confirmation key like `Enter` could misfire mid-composition or interfere with the IME's own confirmation step, making the affected component unusable for Chinese, Japanese, or Korean input. This is automatic and not configurable.
@@ -181,9 +185,10 @@ Set `ignoreWhenFocusedInInputs: false` if you deliberately want the shortcut to 
 useKey("Enter", handleSubmit, { eventType: "keydown", preventRepeat: true });
 ```
 
-- **Development-Only Warnings:** In development, the hook logs a `console.warn` if `key` resolves to an empty string, since such a listener can never match anything, and separately if `mod` is combined with an explicit `ctrlKey`/`metaKey` — a combination TypeScript already rejects, but worth flagging at runtime for callers not using it. Neither warning has any effect in production builds.
+- **Development-Only Warnings:** In development, the hook logs a `console.warn` in three situations: when `key` resolves to an empty string, since such a listener can never match anything; when `mod` is combined with an explicit `ctrlKey`/`metaKey` — a combination TypeScript already rejects at compile time, but worth flagging at runtime for plain-JavaScript callers who don't have type checking to catch it; and when `eventType` isn't one of `"keydown"`/`"keyup"`/`"keypress"`, since the hook silently falls back to `"keydown"` rather than throwing. None of these warnings have any effect in production builds.
 
 ## See Also
 
 - [`useEventListener`](../useEventListener/README.md) — the foundational event-subscription hook that powers `useKey`.
 - [`useClickOutside`](../useClickOutside/README.md) — commonly used alongside this hook to dismiss the same UI on both a keyboard shortcut and an outside click.
+- [`formatKey`](../formatKey/README.md) — displays a bound shortcut in a UI (tooltip, menu, settings page), using a compatible modifier shape.

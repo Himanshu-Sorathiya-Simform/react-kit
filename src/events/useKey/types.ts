@@ -14,10 +14,18 @@ interface UseKeyBaseOptions {
 	enabled?: boolean;
 
 	/**
-	 * The element, ref, `window`, or `document` to attach the listener to.
+	 * The element, ref, `window`, or `document` to attach the listener to —
+	 * an `HTMLElement` or a focusable `SVGElement` (e.g. `<svg tabIndex={0}>`)
+	 * both work.
 	 * @default window
 	 */
-	target?: RefObject<HTMLElement | null> | HTMLElement | Window | Document | null;
+	target?:
+		| RefObject<HTMLElement | SVGElement | null>
+		| HTMLElement
+		| SVGElement
+		| Window
+		| Document
+		| null;
 
 	/**
 	 * Whether to call `event.preventDefault()` when `key` matches. Applied

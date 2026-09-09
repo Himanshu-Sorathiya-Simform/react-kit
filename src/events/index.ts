@@ -7,6 +7,8 @@ export {
 	useEventListener,
 } from "./useEventListener/useEventListener";
 export { type UseKeyReturn, useKey } from "./useKey/useKey";
+export { type UseHeldKeysReturn, useHeldKeys } from "./useHeldKeys/useHeldKeys";
+export { type UseKeyHoldReturn, useKeyHold } from "./useKeyHold/useKeyHold";
 
 export type {
 	ClickOutsideEvent,
@@ -22,8 +24,7 @@ export type {
 } from "./useEventListener/types";
 export type { KeyEventType, UseKeyBaseOptions, UseKeyOptions } from "./useKey/types";
 
-export {
-	formatKey,
-	type FormatKeyDescriptor,
-	type FormatKeyOptions,
-} from "../shared/keysShared/utils";
+export { formatKey } from "./formatKey/formatKey";
+export type { FormatKeyDescriptor, FormatKeyOptions } from "./formatKey/types";
+
+export type { CanonicalModifier, KeyModifiers } from "../shared/keysShared/types";

@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { resolveMod } from "../../shared/keysShared/platform.ts";
 import { useEventListener } from "../useEventListener/useEventListener.ts";
-import { validKeyEventTypes } from "./constants.ts";
+import { NON_TEXT_INPUT_TYPES, validKeyEventTypes } from "./constants.ts";
 import type { UseKeyOptions } from "./types.ts";
 
 // No ambient `process` type required (works without @types/node); defaults
@@ -74,7 +74,11 @@ function useKey(
 		target,
 	} = options;
 
-	const targetKey = key.toLowerCase();
+	// The spacebar's real `KeyboardEvent.key` value is a literal " ", not the
+	// word "Space" — normalized here so `useKey("Space", ...)` still matches,
+	// the same way `formatKey` normalizes it in the other direction.
+	const lowerKey = key.toLowerCase();
+	const targetKey = lowerKey === "space" ? " " : lowerKey;
 
 	useEffect(() => {
 		if (isDev && targetKey === "") {
@@ -92,7 +96,13 @@ function useKey(
 				"[useKey] `mod` is combined with an explicit `ctrlKey`/`metaKey` — `mod` takes precedence and the explicit value is ignored.",
 			);
 		}
-	}, [targetKey, mod, ctrlKey, metaKey]);
+
+		if (isDev && !validKeyEventTypes.includes(eventType)) {
+			console.warn(
+				`[useKey] Invalid eventType "${eventType}" — falling back to "keydown". Valid values are: ${validKeyEventTypes.join(", ")}.`,
+			);
+		}
+	}, [targetKey, mod, ctrlKey, metaKey, eventType]);
 
 	const resolvedEventType =
 		validKeyEventTypes.includes(eventType) ? eventType : "keydown";
@@ -116,7 +126,8 @@ function useKey(
 		if (
 			ignoreWhenFocusedInInputs
 			&& focusedElement instanceof HTMLElement
-			&& (focusedElement instanceof HTMLInputElement
+			&& ((focusedElement instanceof HTMLInputElement
+				&& !NON_TEXT_INPUT_TYPES.has(focusedElement.type))
 				|| focusedElement instanceof HTMLTextAreaElement
 				|| focusedElement instanceof HTMLSelectElement
 				|| focusedElement.isContentEditable)

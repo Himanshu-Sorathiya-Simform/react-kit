@@ -7,4 +7,23 @@
  */
 const validKeyEventTypes = ["keydown", "keyup", "keypress"] as const;
 
-export { validKeyEventTypes };
+/**
+ * `<input>` `type` values that don't accept typed text — `ignoreWhenFocusedInInputs`
+ * only guards actual text-entry surfaces, so a shortcut like `Escape` or
+ * `Cmd+S` still fires while, say, a checkbox or color swatch happens to be
+ * focused.
+ */
+const NON_TEXT_INPUT_TYPES = new Set([
+	"button",
+	"checkbox",
+	"color",
+	"file",
+	"hidden",
+	"image",
+	"radio",
+	"range",
+	"reset",
+	"submit",
+]);
+
+export { NON_TEXT_INPUT_TYPES, validKeyEventTypes };
