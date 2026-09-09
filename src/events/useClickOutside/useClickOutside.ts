@@ -71,6 +71,14 @@ function useClickOutside(
 		const eventTarget = event.target;
 		if (!(eventTarget instanceof Node)) return;
 
+		// A target that's already detached from the document — most likely
+		// because its own click/mousedown handler synchronously removed it —
+		// can't be reliably resolved against `.contains()` for any of the
+		// configured targets. Rather than risk a false-positive "outside"
+		// firing on a node that may well have been inside, skip this round;
+		// whatever handler unmounted it already ran.
+		if (!eventTarget.isConnected) return;
+
 		const targets = Array.isArray(target) ? target : [target];
 
 		// This runs on every click, so the warning is latched to fire once

@@ -5,6 +5,14 @@ import type { RefObject } from "react";
  * by whichever `eventType` was configured — `MouseEvent` for
  * `click`/`mousedown`/`mouseup`, `TouchEvent` for `touchstart`/`touchend`,
  * `PointerEvent` for `pointerdown`/`pointerup`.
+ *
+ * The `| Event` fallback isn't a mistake, even though it looks like it
+ * collapses the whole union: `eventType` defaults to (and often stays) an
+ * *array* of event names, and when `useEventListener` receives an array it
+ * falls back to its generic `EventTarget` overload, which types the
+ * handler's `event` parameter as plain `Event`. Without `| Event` here,
+ * `onClickOutside` wouldn't be assignable to that overload and the file
+ * wouldn't compile.
  */
 type ClickOutsideEvent = MouseEvent | TouchEvent | PointerEvent | Event;
 
